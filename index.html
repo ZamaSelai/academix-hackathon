@@ -1,0 +1,2768 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>AcademiX – Research Engine</title>
+  <style>
+    /* ===== CSS VARIABLES (unchanged) ===== */
+    :root {
+      --deep-green: #1a4a3a;
+      --sage-green: #7a9e7e;
+      --terracotta: #c97b5a;
+      --golden-tan: #d4a05a;
+      --warm-brown: #8b6b4a;
+      --cream: #f5efe6;
+      --off-white: #faf8f4;
+      --dark-text: #1e2a2a;
+      --light-text: #f5f0ea;
+      --shadow: 0 8px 32px rgba(26, 74, 58, 0.15);
+      --shadow-hover: 0 12px 48px rgba(26, 74, 58, 0.25);
+      --radius: 16px;
+      --radius-sm: 8px;
+      --transition: 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+      --font: 'Segoe UI', system-ui, -apple-system, sans-serif;
+    }
+
+    /* ===== RESET & BASE ===== */
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+    html { scroll-behavior: smooth; }
+    body {
+      font-family: var(--font);
+      background: var(--off-white);
+      color: var(--dark-text);
+      line-height: 1.6;
+      min-height: 100vh;
+    }
+    a { text-decoration: none; color: inherit; }
+    button { cursor: pointer; font-family: inherit; font-size: inherit; border: none; background: none; }
+    input, select, textarea { font-family: inherit; font-size: inherit; }
+
+    /* ===== UTILITY ===== */
+    .container { max-width: 1280px; margin: 0 auto; padding: 0 24px; }
+    .flex { display: flex; align-items: center; }
+    .flex-col { flex-direction: column; }
+    .gap-1 { gap: 8px; }
+    .gap-2 { gap: 16px; }
+    .gap-3 { gap: 24px; }
+    .gap-4 { gap: 32px; }
+    .wrap { flex-wrap: wrap; }
+    .justify-between { justify-content: space-between; }
+    .justify-center { justify-content: center; }
+    .text-center { text-align: center; }
+    .w-full { width: 100%; }
+    .relative { position: relative; }
+    .hidden { display: none !important; }
+    .block { display: block; }
+
+    .badge {
+      display: inline-block;
+      padding: 4px 14px;
+      border-radius: 20px;
+      font-size: 0.75rem;
+      font-weight: 600;
+      letter-spacing: 0.3px;
+      text-transform: uppercase;
+    }
+    .badge-green { background: var(--sage-green); color: #fff; }
+    .badge-gold { background: var(--golden-tan); color: #fff; }
+    .badge-terra { background: var(--terracotta); color: #fff; }
+    .badge-brown { background: var(--warm-brown); color: #fff; }
+    .badge-dark { background: var(--deep-green); color: #fff; }
+
+    /* ===== BUTTONS ===== */
+    .btn {
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      padding: 12px 28px;
+      border-radius: 50px;
+      font-weight: 600;
+      font-size: 0.95rem;
+      transition: var(--transition);
+      border: 2px solid transparent;
+    }
+    .btn-primary { background: var(--deep-green); color: #fff; }
+    .btn-primary:hover { background: #0f3a2e; transform: translateY(-2px); box-shadow: var(--shadow); }
+    .btn-secondary { background: transparent; color: var(--deep-green); border-color: var(--deep-green); }
+    .btn-secondary:hover { background: var(--deep-green); color: #fff; transform: translateY(-2px); }
+    .btn-terra { background: var(--terracotta); color: #fff; }
+    .btn-terra:hover { background: #b86a4a; transform: translateY(-2px); box-shadow: var(--shadow); }
+    .btn-gold { background: var(--golden-tan); color: #fff; }
+    .btn-gold:hover { background: #c4904a; transform: translateY(-2px); box-shadow: var(--shadow); }
+    .btn-sage { background: var(--sage-green); color: #fff; }
+    .btn-sage:hover { background: #6a8e6e; transform: translateY(-2px); box-shadow: var(--shadow); }
+    .btn-outline { background: transparent; border-color: var(--cream); color: var(--cream); }
+    .btn-outline:hover { background: var(--cream); color: var(--deep-green); }
+    .btn-sm { padding: 8px 18px; font-size: 0.8rem; }
+    .btn-block { width: 100%; justify-content: center; }
+    .btn-danger { background: #c0392b; color: #fff; }
+    .btn-danger:hover { background: #a93226; }
+
+    /* ===== CARDS ===== */
+    .card {
+      background: #fff;
+      border-radius: var(--radius);
+      box-shadow: var(--shadow);
+      padding: 24px;
+      transition: var(--transition);
+    }
+    .card:hover { box-shadow: var(--shadow-hover); transform: translateY(-4px); }
+    .card-glass {
+      background: rgba(255, 255, 255, 0.85);
+      backdrop-filter: blur(12px);
+      border: 1px solid rgba(255, 255, 255, 0.3);
+    }
+
+    .section-title {
+      font-size: 2.2rem;
+      font-weight: 700;
+      color: var(--deep-green);
+      margin-bottom: 8px;
+    }
+    .section-sub {
+      font-size: 1.1rem;
+      color: var(--warm-brown);
+      max-width: 640px;
+    }
+
+    /* ===== SCROLLBAR ===== */
+    ::-webkit-scrollbar { width: 6px; height: 6px; }
+    ::-webkit-scrollbar-track { background: var(--cream); }
+    ::-webkit-scrollbar-thumb { background: var(--sage-green); border-radius: 10px; }
+
+    /* ===== TOAST ===== */
+    .toast-container {
+      position: fixed;
+      top: 24px;
+      right: 24px;
+      z-index: 9999;
+      display: flex;
+      flex-direction: column;
+      gap: 12px;
+      max-width: 380px;
+      width: 100%;
+    }
+    .toast {
+      padding: 16px 20px;
+      border-radius: var(--radius-sm);
+      background: #fff;
+      box-shadow: var(--shadow-hover);
+      border-left: 5px solid var(--deep-green);
+      animation: slideInRight 0.4s ease;
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      font-weight: 500;
+    }
+    .toast-success { border-left-color: var(--sage-green); }
+    .toast-error { border-left-color: var(--terracotta); }
+    .toast-warning { border-left-color: var(--golden-tan); }
+    .toast-icon { font-size: 1.4rem; }
+    @keyframes slideInRight {
+      from { opacity: 0; transform: translateX(40px); }
+      to { opacity: 1; transform: translateX(0); }
+    }
+
+    /* ===== NAVBAR ===== */
+    .navbar {
+  background: rgba(26, 74, 58, 0.97);
+  backdrop-filter: blur(12px);
+  padding: 0 40px; /* more padding inside the navbar */
+  position: sticky;
+  top: 0;
+  z-index: 1000;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.08);
+}
+    .navbar .container {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  height: 72px;
+}
+    .nav-logo {
+  font-size: 1.6rem;
+  font-weight: 800;
+  color: #fff;
+  letter-spacing: -0.5px;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+    .nav-logo span { color: var(--golden-tan); }
+
+    .nav-links {
+  display: flex;
+  align-items: center;
+  justify-content: space-evenly; /* spreads links evenly */
+  flex: 1; /* take up full width */
+  list-style: none;
+  margin-left: 15px; /* extra space between logo and links */
+  gap: 5 px; /* bigger gap between items */
+}
+    .nav-links a {
+  color: rgba(255, 255, 255, 0.85);
+  font-weight: 500;
+  font-size: 1rem;
+  transition: var(--transition);
+  position: relative;
+  padding: 0 16px; /* extra breathing room */
+}
+
+.nav-links a:hover { color: #fff; }
+
+.nav-links .nav-cta {
+  background: var(--golden-tan);
+  color: var(--deep-green);
+  padding: 10px 24px;
+  border-radius: 50px;
+  font-weight: 700;
+}
+.nav-links .nav-cta:hover { background: #c4904a; color: #fff; }
+
+.nav-toggle {
+  display: none;
+  flex-direction: column;
+  gap: 15px;
+  background: none;
+  border: none;
+  padding: 6px;
+}
+  
+.nav-toggle span {
+  width: 25px;
+  height: 2px;
+  background: #fff;
+  border-radius: 2px;
+}
+
+    /* ===== HERO (landing) ===== */
+    .hero {
+      background: var(--deep-green);
+      color: #fff;
+      padding: 80px 0 100px;
+    }
+    .hero-grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 48px;
+      align-items: center;
+    }
+    .hero h1 {
+      font-size: 3.5rem;
+      font-weight: 800;
+      line-height: 1.15;
+      letter-spacing: -1px;
+    }
+    .hero h1 span { color: var(--golden-tan); }
+    .hero p {
+      font-size: 1.2rem;
+      opacity: 0.85;
+      max-width: 520px;
+      margin-top: 16px;
+      line-height: 1.7;
+    }
+    .hero-buttons {
+      display: flex;
+      gap: 16px;
+      margin-top: 32px;
+      flex-wrap: wrap;
+    }
+    .hero-visual { display: flex; justify-content: center; align-items: center; }
+    .hero-dashboard {
+      background: rgba(255, 255, 255, 0.06);
+      backdrop-filter: blur(16px);
+      border-radius: var(--radius);
+      padding: 32px;
+      border: 1px solid rgba(255, 255, 255, 0.08);
+      width: 100%;
+      max-width: 520px;
+      box-shadow: 0 24px 64px rgba(0, 0, 0, 0.3);
+    }
+    .hero-dash-row {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      padding: 12px 0;
+      border-bottom: 1px solid rgba(255, 255, 255, 0.06);
+    }
+    .hero-dash-row:last-child { border-bottom: none; }
+    .hero-dash-label { font-size: 0.8rem; text-transform: uppercase; letter-spacing: 0.5px; opacity: 0.6; }
+    .hero-dash-value { font-weight: 600; font-size: 1.1rem; }
+    .hero-dash-badge {
+      background: var(--golden-tan);
+      padding: 4px 14px;
+      border-radius: 20px;
+      font-size: 0.7rem;
+      font-weight: 700;
+      color: var(--deep-green);
+    }
+    .hero-dash-ring {
+      width: 60px;
+      height: 60px;
+      border-radius: 50%;
+      border: 4px solid var(--sage-green);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-weight: 700;
+      font-size: 0.9rem;
+      color: var(--golden-tan);
+    }
+    .verify-badge {
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      background: linear-gradient(145deg, var(--golden-tan), #d4a05a);
+      color: #fff;
+      padding: 6px 18px 6px 12px;
+      border-radius: 50px;
+      font-weight: 700;
+      font-size: 0.85rem;
+      box-shadow: 0 4px 16px rgba(212, 160, 90, 0.35);
+    }
+    .verify-badge .icon { font-size: 1.2rem; }
+
+    /* ===== SECTIONS ===== */
+    .section { padding: 80px 0; }
+    .section-alt { background: #fff; }
+    .section-green { background: var(--deep-green); color: #fff; }
+    .section-green .section-title { color: #fff; }
+    .section-green .section-sub { color: rgba(255, 255, 255, 0.7); }
+
+    /* ===== STEPS ===== */
+    .steps-grid {
+      display: grid;
+      grid-template-columns: repeat(4, 1fr);
+      gap: 24px;
+      margin-top: 40px;
+    }
+    .step-card {
+      background: #fff;
+      border-radius: var(--radius);
+      padding: 32px 24px;
+      text-align: center;
+      box-shadow: var(--shadow);
+      transition: var(--transition);
+      border-top: 5px solid var(--golden-tan);
+    }
+    .step-card:hover { transform: translateY(-8px); box-shadow: var(--shadow-hover); }
+    .step-number {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      width: 52px;
+      height: 52px;
+      border-radius: 50%;
+      background: var(--deep-green);
+      color: #fff;
+      font-weight: 800;
+      font-size: 1.3rem;
+      margin-bottom: 16px;
+    }
+    .step-card h3 { font-size: 1.2rem; color: var(--deep-green); margin-bottom: 8px; }
+    .step-card p { color: var(--warm-brown); font-size: 0.95rem; }
+
+    /* ===== AUTH SELECTOR ===== */
+    .auth-selector {
+      display: flex;
+      gap: 24px;
+      justify-content: center;
+      margin: 32px 0;
+      flex-wrap: wrap;
+    }
+    .auth-option {
+      padding: 32px 48px;
+      border-radius: var(--radius);
+      background: #fff;
+      box-shadow: var(--shadow);
+      border: 3px solid transparent;
+      transition: var(--transition);
+      text-align: center;
+      min-width: 200px;
+      cursor: pointer;
+    }
+    .auth-option:hover { transform: translateY(-4px); box-shadow: var(--shadow-hover); }
+    .auth-option.active { border-color: var(--golden-tan); background: #fdf8f0; }
+    .auth-option .icon { font-size: 2.8rem; margin-bottom: 8px; }
+    .auth-option h3 { font-size: 1.2rem; color: var(--deep-green); }
+    .auth-option p { font-size: 0.85rem; color: var(--warm-brown); }
+
+    /* ===== FORMS ===== */
+    .form-group { margin-bottom: 20px; }
+    .form-group label {
+      display: block;
+      font-weight: 600;
+      font-size: 0.9rem;
+      color: var(--deep-green);
+      margin-bottom: 4px;
+    }
+    .form-group input,
+    .form-group select,
+    .form-group textarea {
+      width: 100%;
+      padding: 12px 16px;
+      border: 2px solid #e8e0d6;
+      border-radius: var(--radius-sm);
+      background: #fff;
+      transition: var(--transition);
+      font-size: 0.95rem;
+    }
+    .form-group input:focus,
+    .form-group select:focus,
+    .form-group textarea:focus {
+      outline: none;
+      border-color: var(--sage-green);
+      box-shadow: 0 0 0 4px rgba(122, 158, 126, 0.15);
+    }
+    .form-group textarea { resize: vertical; min-height: 100px; }
+    .form-row {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 16px;
+    }
+    .form-card {
+      background: #fff;
+      border-radius: var(--radius);
+      padding: 32px;
+      box-shadow: var(--shadow);
+      margin-top: 16px;
+    }
+
+    /* ===== DASHBOARD ===== */
+    .dash-grid {
+      display: grid;
+      grid-template-columns: repeat(4, 1fr);
+      gap: 20px;
+      margin-top: 24px;
+    }
+    .dash-stat {
+      background: #fff;
+      border-radius: var(--radius);
+      padding: 20px 24px;
+      box-shadow: var(--shadow);
+      border-left: 5px solid var(--deep-green);
+    }
+    .dash-stat .label { color: var(--warm-brown); font-size: 0.85rem; }
+    .dash-stat .value { font-size: 2rem; font-weight: 800; color: var(--deep-green); }
+    .dash-stat .sub { font-size: 0.75rem; color: var(--warm-brown); margin-top: 4px; }
+    .dash-stat.gold { border-left-color: var(--golden-tan); }
+    .dash-stat.sage { border-left-color: var(--sage-green); }
+    .dash-stat.terra { border-left-color: var(--terracotta); }
+    .dash-stat.brown { border-left-color: var(--warm-brown); }
+    .dash-welcome { font-size: 1.6rem; font-weight: 700; color: var(--deep-green); }
+
+    /* ===== WALLET ===== */
+    .wallet-balance {
+      background: linear-gradient(145deg, var(--deep-green), #0f3a2e);
+      color: #fff;
+      border-radius: var(--radius);
+      padding: 32px 40px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      flex-wrap: wrap;
+      gap: 16px;
+    }
+    .wallet-balance .amount { font-size: 3rem; font-weight: 800; }
+    .wallet-balance .label { opacity: 0.7; font-size: 0.9rem; }
+    .wallet-balance .actions { display: flex; gap: 12px; flex-wrap: wrap; }
+
+    /* ===== TOPICS ===== */
+    .topics-grid {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 24px;
+      margin-top: 32px;
+    }
+    .topic-card {
+      background: #fff;
+      border-radius: var(--radius);
+      padding: 24px;
+      box-shadow: var(--shadow);
+      transition: var(--transition);
+      border-bottom: 5px solid var(--sage-green);
+    }
+    .topic-card:hover { transform: translateY(-6px); box-shadow: var(--shadow-hover); }
+    .topic-card h3 { font-size: 1.1rem; color: var(--deep-green); margin-bottom: 6px; }
+    .topic-card .meta {
+      display: flex;
+      gap: 12px;
+      flex-wrap: wrap;
+      font-size: 0.8rem;
+      color: var(--warm-brown);
+      margin: 8px 0 12px;
+    }
+    .topic-card .meta span { background: var(--cream); padding: 2px 12px; border-radius: 12px; }
+    .topic-card .earnings { font-weight: 700; color: var(--golden-tan); font-size: 1.1rem; }
+
+    /* ===== VERIFICATION ===== */
+    .verification-flow { max-width: 560px; margin: 0 auto; }
+    .veri-step {
+      display: flex;
+      align-items: center;
+      gap: 16px;
+      padding: 16px 20px;
+      background: #fff;
+      border-radius: var(--radius-sm);
+      margin-bottom: 12px;
+      box-shadow: 0 2px 8px rgba(0, 0, 0, 0.04);
+      border-left: 4px solid #e8e0d6;
+      transition: var(--transition);
+    }
+    .veri-step.done { border-left-color: var(--sage-green); background: #f6faf5; }
+    .veri-step .num { font-weight: 800; color: var(--warm-brown); font-size: 1.1rem; width: 28px; }
+    .veri-step .check { color: var(--sage-green); font-size: 1.2rem; }
+
+    /* ===== TABLE ===== */
+    .table-wrap { overflow-x: auto; margin-top: 16px; }
+    table { width: 100%; border-collapse: collapse; font-size: 0.9rem; }
+    th {
+      text-align: left;
+      padding: 12px 16px;
+      background: var(--cream);
+      color: var(--deep-green);
+      font-weight: 600;
+    }
+    td { padding: 12px 16px; border-bottom: 1px solid #f0ebe4; }
+    tr:hover td { background: #f8f5f0; }
+    .status-badge {
+      padding: 4px 14px;
+      border-radius: 20px;
+      font-size: 0.7rem;
+      font-weight: 600;
+      text-transform: uppercase;
+    }
+    .status-verified { background: var(--sage-green); color: #fff; }
+    .status-pending { background: var(--golden-tan); color: #fff; }
+    .status-rejected { background: var(--terracotta); color: #fff; }
+
+    /* ===== STRIKES ===== */
+    .strike-indicator { display: flex; gap: 8px; align-items: center; }
+    .strike-dot {
+      width: 28px;
+      height: 28px;
+      border-radius: 50%;
+      background: #e8e0d6;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-weight: 700;
+      font-size: 0.75rem;
+      color: #fff;
+    }
+    .strike-dot.filled { background: var(--terracotta); }
+    .strike-dot.warning { background: var(--golden-tan); }
+
+    /* ===== PATRON SPECIFIC ===== */
+    .patron-stats {
+      display: grid;
+      grid-template-columns: repeat(4, 1fr);
+      gap: 20px;
+      margin-top: 24px;
+    }
+    .patron-grid { display: grid; grid-template-columns: 1.3fr 0.7fr; gap: 20px; }
+    .research-card {
+      background: #fff;
+      border: 1px solid #e8e0d6;
+      border-radius: var(--radius);
+      padding: 22px;
+      transition: var(--transition);
+    }
+    .research-card:hover { transform: translateY(-4px); box-shadow: var(--shadow-hover); }
+    .research-card h3 { margin: 12px 0 6px; color: var(--deep-green); }
+    .research-card .tag {
+      display: inline-block;
+      background: #e5f0e9;
+      color: var(--sage-green);
+      padding: 5px 9px;
+      border-radius: 99px;
+      font-size: 10px;
+      font-weight: 900;
+      text-transform: uppercase;
+    }
+    .research-info {
+      display: flex;
+      gap: 12px;
+      font-size: 0.8rem;
+      color: var(--warm-brown);
+      margin: 12px 0;
+    }
+    .research-price { font-size: 1.6rem; font-weight: 800; color: var(--deep-green); margin: 12px 0; }
+    .card-actions { display: flex; gap: 8px; flex-wrap: wrap; }
+
+    /* ===== MODAL ===== */
+    .modal-bg {
+      position: fixed;
+      inset: 0;
+      background: rgba(0, 0, 0, 0.6);
+      display: none;
+      align-items: center;
+      justify-content: center;
+      padding: 20px;
+      z-index: 999;
+    }
+    .modal-bg.open { display: flex; }
+    .modal {
+      width: 100%;
+      max-width: 650px;
+      max-height: 90vh;
+      overflow-y: auto;
+      background: #fff;
+      border-radius: var(--radius);
+      padding: 30px;
+      box-shadow: var(--shadow-hover);
+    }
+    .modal-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 16px;
+    }
+    .modal-header h2 { color: var(--deep-green); }
+    .close-modal {
+      width: 38px;
+      height: 38px;
+      border-radius: 10px;
+      background: #eadfce;
+      font-size: 1.5rem;
+      display: grid;
+      place-items: center;
+      cursor: pointer;
+      border: none;
+    }
+    .close-modal:hover { background: #d5c9b6; }
+
+    /* ===== PROFILE ===== */
+    .profile-avatar {
+      width: 80px;
+      height: 80px;
+      border-radius: 50%;
+      background: var(--sage-green);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 2.4rem;
+      color: #fff;
+      font-weight: 700;
+    }
+
+    /* ===== DOCUMENTS ===== */
+    .doc-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+      gap: 16px;
+      margin-top: 16px;
+    }
+    .doc-card {
+      background: #fff;
+      border-radius: var(--radius-sm);
+      padding: 16px;
+      box-shadow: 0 2px 8px rgba(0, 0, 0, 0.06);
+      border-left: 4px solid var(--sage-green);
+      display: flex;
+      flex-direction: column;
+      gap: 4px;
+    }
+
+    /* ===== ADMIN ===== */
+    .admin-stat-grid {
+      display: grid;
+      grid-template-columns: repeat(4, 1fr);
+      gap: 16px;
+      margin-top: 20px;
+    }
+
+    /* ===== ANIMATIONS ===== */
+    @keyframes fadeUp {
+      from { opacity: 0; transform: translateY(24px); }
+      to { opacity: 1; transform: translateY(0); }
+    }
+    .fade-up { animation: fadeUp 0.6s ease forwards; }
+    @keyframes spin { to { transform: rotate(360deg); } }
+    .spinner {
+      width: 40px;
+      height: 40px;
+      border: 4px solid #e8e0d6;
+      border-top-color: var(--golden-tan);
+      border-radius: 50%;
+      animation: spin 0.8s linear infinite;
+      margin: 16px auto;
+    }
+    @keyframes checkPop {
+      0% { transform: scale(0); }
+      70% { transform: scale(1.2); }
+      100% { transform: scale(1); }
+    }
+    .check-pop { animation: checkPop 0.5s ease forwards; }
+    .empty-state { text-align: center; padding: 48px 24px; color: var(--warm-brown); }
+    .empty-state .icon { font-size: 4rem; margin-bottom: 16px; opacity: 0.5; }
+    .empty-state h3 { font-size: 1.4rem; color: var(--deep-green); margin-bottom: 8px; }
+
+    /* ===== PAGES ===== */
+    .page { display: none; animation: fadeUp 0.5s ease forwards; }
+    .page.active { display: block; }
+
+    /* ===== RESPONSIVE ===== */
+    @media (max-width: 1024px) {
+      .hero-grid { grid-template-columns: 1fr; text-align: center; }
+      .hero p { margin-left: auto; margin-right: auto; }
+      .hero-buttons { justify-content: center; }
+      .hero-dashboard { max-width: 100%; }
+      .steps-grid { grid-template-columns: repeat(2, 1fr); }
+      .topics-grid { grid-template-columns: repeat(2, 1fr); }
+      .dash-grid { grid-template-columns: repeat(2, 1fr); }
+      .patron-stats { grid-template-columns: repeat(2, 1fr); }
+      .patron-grid { grid-template-columns: 1fr; }
+      .nav-links { display: none; flex-direction: column; background: var(--deep-green); padding: 20px; border-radius: var(--radius-sm); }
+      .nav-links.open { display: flex; }
+      .nav-toggle { display: flex; }
+      .form-row { grid-template-columns: 1fr; }
+    }
+    @media (max-width: 768px) {
+      .admin-stat-grid { grid-template-columns: repeat(2, 1fr); }
+      .dash-grid { grid-template-columns: 1fr; }
+      .patron-stats { grid-template-columns: 1fr; }
+      .steps-grid { grid-template-columns: 1fr; }
+      .topics-grid { grid-template-columns: 1fr; }
+      .wallet-balance { flex-direction: column; text-align: center; }
+    }
+  </style>
+</head>
+<body>
+
+  <!-- ===== TOAST CONTAINER ===== -->
+  <div class="toast-container" id="toastContainer"></div>
+
+  <!-- ===== MODAL ===== -->
+  <div class="modal-bg" id="modalOverlay">
+    <div class="modal">
+      <div class="modal-header">
+        <h2 id="modalTitle">Modal</h2>
+        <button class="close-modal" onclick="closeModal()">×</button>
+      </div>
+      <div id="modalContent"></div>
+    </div>
+  </div>
+
+  <!-- ===== NAVBAR ===== -->
+  <nav class="navbar">
+    <div class="container">
+      <div class="nav-logo">Academi<span>X</span></div>
+      <ul class="nav-links" id="navLinks">
+        <li><a href="#" onclick="showPage('landing')">Home</a></li>
+        <li class="student-only hidden"><a href="#" onclick="showPage('student')">Dashboard</a></li>
+        <li class="student-only hidden"><a href="#" onclick="showPage('student-profile')">Profile</a></li>
+        <li class="student-only hidden"><a href="#" onclick="showPage('student-wallet')">Wallet</a></li>
+        <li class="student-only hidden"><a href="#" onclick="showPage('student-topics')">Topics</a></li>
+        <li class="student-only hidden"><a href="#" onclick="showPage('student-upload')">Submit</a></li>
+        <li class="student-only hidden"><a href="#" onclick="showPage('student-submissions')">Submissions</a></li>
+        <li class="student-only hidden"><a href="#" onclick="showPage('student-docs')">Documents</a></li>
+        <li class="patron-only hidden"><a href="#" onclick="showPage('patron-dashboard')">Patron Dashboard</a></li>
+        <li class="patron-only hidden"><a href="#" onclick="showPage('patron-marketplace')">Marketplace</a></li>
+        <li class="patron-only hidden"><a href="#" onclick="showPage('patron-saved')">Saved</a></li>
+        <li class="patron-only hidden"><a href="#" onclick="showPage('patron-purchases')">Purchases</a></li>
+        <li class="patron-only hidden"><a href="#" onclick="showPage('patron-account')">Account</a></li>
+        <li><a href="#" onclick="showPage('login')">Login</a></li>
+        <li><a href="#" class="nav-cta" onclick="showPage('register')">Sign Up</a></li>
+      </ul>
+      <button class="nav-toggle" id="navToggle" aria-label="Toggle navigation">
+        <span></span><span></span><span></span>
+      </button>
+    </div>
+  </nav>
+
+  <!-- ============================================================ -->
+  <!-- ===== PAGE: LANDING ===== -->
+  <!-- ============================================================ -->
+  <div class="page active" id="page-landing">
+    <section class="hero">
+      <div class="container">
+        <div class="hero-grid">
+          <div>
+            <h1>Turn Your Research<br>Into <span>Real Value.</span></h1>
+            <p>AcademiX transforms verified student research into high-value human knowledge while giving students the opportunity to earn from the academic knowledge they already have.</p>
+            <div class="hero-buttons">
+              <button class="btn btn-primary" onclick="showPage('register')">Start Contributing</button>
+              <button class="btn btn-secondary" style="border-color:rgba(255,255,255,0.4);color:#fff;" onclick="document.getElementById('howItWorks').scrollIntoView({behavior:'smooth'})">How It Works</button>
+            </div>
+          </div>
+          <div class="hero-visual">
+            <div class="hero-dashboard">
+              <div class="hero-dash-row">
+                <span class="hero-dash-label">Student</span>
+                <span class="hero-dash-value">Thando M.</span>
+                <span class="hero-dash-badge">Verified</span>
+              </div>
+              <div class="hero-dash-row">
+                <span class="hero-dash-label">Submission</span>
+                <span class="hero-dash-value">AI in Education</span>
+                <span style="font-size:0.75rem;opacity:0.6;">1,200 words</span>
+              </div>
+              <div class="hero-dash-row">
+                <span class="hero-dash-label">AI Verification</span>
+                <span style="display:flex;align-items:center;gap:8px;">
+                  <span style="color:var(--golden-tan);">✓</span>
+                  <span style="font-weight:600;">Human-Grade</span>
+                </span>
+                <span class="hero-dash-badge" style="background:var(--sage-green);">Passed</span>
+              </div>
+              <div class="hero-dash-row">
+                <span class="hero-dash-label">Badge</span>
+                <span class="verify-badge" style="font-size:0.7rem;padding:4px 12px;">
+                  <span class="icon">✓</span> Verified Human-Grade
+                </span>
+              </div>
+              <div class="hero-dash-row">
+                <span class="hero-dash-label">Earnings</span>
+                <span class="hero-dash-value" style="color:var(--golden-tan);">R 1,250.00</span>
+                <span class="hero-dash-ring">+R120</span>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <section class="section" id="howItWorks">
+      <div class="container text-center">
+        <h2 class="section-title">How It Works</h2>
+        <p class="section-sub" style="margin:0 auto 16px;">Four simple steps to turn your academic work into value.</p>
+        <div class="steps-grid">
+          <div class="step-card">
+            <div class="step-number">1</div>
+            <h3>Create Your Profile</h3>
+            <p>Sign up and verify your university identity to join the AcademiX community.</p>
+          </div>
+          <div class="step-card" style="border-top-color:var(--sage-green);">
+            <div class="step-number" style="background:var(--sage-green);">2</div>
+            <h3>Choose a Topic</h3>
+            <p>Browse available research topics and select one that matches your expertise.</p>
+          </div>
+          <div class="step-card" style="border-top-color:var(--terracotta);">
+            <div class="step-number" style="background:var(--terracotta);">3</div>
+            <h3>Submit Your Research</h3>
+            <p>Upload your original research essay or document for review.</p>
+          </div>
+          <div class="step-card" style="border-top-color:var(--golden-tan);">
+            <div class="step-number" style="background:var(--golden-tan);">4</div>
+            <h3>Get Verified &amp; Earn</h3>
+            <p>Pass AI verification, earn the Human-Grade badge, and get paid.</p>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <section class="section section-alt">
+      <div class="container text-center">
+        <h2 class="section-title">Two Sides of Innovation</h2>
+        <p class="section-sub" style="margin:0 auto 32px;">Whether you're a student contributor or a patron accessing verified research, AcademiX connects you to quality.</p>
+        <div style="display:grid;grid-template-columns:1fr 1fr;gap:32px;max-width:900px;margin:0 auto;">
+          <div class="card" style="border-top:5px solid var(--golden-tan);text-align:left;">
+            <div style="font-size:2.4rem;">🎓</div>
+            <h3 style="color:var(--deep-green);margin:8px 0 4px;">For Students</h3>
+            <p style="color:var(--warm-brown);">Earn money from your research. Build your academic portfolio. Get verified and gain recognition.</p>
+            <ul style="margin-top:12px;list-style:none;font-size:0.9rem;color:var(--warm-brown);">
+              <li>✓ Verified Human-Grade badge</li>
+              <li>✓ Earn per verified word</li>
+              <li>✓ Transparent wallet</li>
+              <li>✓ Build your reputation</li>
+            </ul>
+            <button class="btn btn-primary btn-sm" style="margin-top:16px;" onclick="showPage('register')">Join as Student</button>
+          </div>
+          <div class="card" style="border-top:5px solid var(--terracotta);text-align:left;">
+            <div style="font-size:2.4rem;">🏢</div>
+            <h3 style="color:var(--deep-green);margin:8px 0 4px;">For Patrons</h3>
+            <p style="color:var(--warm-brown);">Access high-quality, verified human research data. Support student innovation.</p>
+            <ul style="margin-top:12px;list-style:none;font-size:0.9rem;color:var(--warm-brown);">
+              <li>✓ Verified human-generated data</li>
+              <li>✓ Quality-assured submissions</li>
+              <li>✓ Anonymised contributor info</li>
+              <li>✓ Curated research datasets</li>
+            </ul>
+            <button class="btn btn-terra btn-sm" style="margin-top:16px;" onclick="showPage('login')">Explore as Patron</button>
+          </div>
+        </div>
+      </div>
+    </section>
+    <section class="section section-green">
+      <div class="container text-center">
+        <h2 class="section-title">Ready to Start?</h2>
+        <p class="section-sub" style="margin:0 auto 24px;">Join the community of verified student researchers and patrons.</p>
+        <button class="btn btn-gold" onclick="showPage('register')">Become a Contributor</button>
+        <button class="btn btn-outline" style="margin-left:12px;" onclick="showPage('login')">Explore AcademiX</button>
+      </div>
+    </section>
+  </div>
+
+  <!-- ============================================================ -->
+  <!-- ===== PAGE: LOGIN ===== -->
+  <!-- ============================================================ -->
+  <div class="page" id="page-login">
+    <section class="section" style="padding-top:40px;">
+      <div class="container">
+        <div class="text-center" style="max-width:640px;margin:0 auto;">
+          <h2 class="section-title">Welcome Back</h2>
+          <p class="section-sub" style="margin:0 auto 8px;">Choose your role to continue.</p>
+          <div class="auth-selector">
+            <div class="auth-option active" data-role="student" onclick="selectAuthRole('student')">
+              <div class="icon">🎓</div>
+              <h3>Student</h3>
+              <p>Access your dashboard</p>
+            </div>
+            <div class="auth-option" data-role="patron" onclick="selectAuthRole('patron')">
+              <div class="icon">🏢</div>
+              <h3>Patron</h3>
+              <p>Access research data</p>
+            </div>
+          </div>
+          <div class="form-card" style="max-width:480px; margin: 0 auto;">
+            <form id="loginForm" onsubmit="handleLogin(event)" novalidate>
+        <!-- form content -->
+            <form id="loginForm" onsubmit="handleLogin(event)" novalidate>
+    <div class="form-group">
+        <label>Email Address</label>
+        <input type="email" id="loginEmail" placeholder="you@university.ac.za" required value="student@demo.com">
+    </div>
+    <div class="form-group">
+        <label>Password</label>
+        <input type="password" id="loginPassword" placeholder="••••••••" required value="password123">
+    </div>
+    <button type="submit" class="btn btn-primary btn-block" id="loginBtn">Log In</button>
+    <p style="margin-top:12px;font-size:0.85rem;color:var(--warm-brown);">
+        Don't have an account? <a href="#" onclick="showPage('register')" style="color:var(--deep-green);font-weight:600;">Sign Up</a>
+    </p>
+    <p style="font-size:0.75rem;color:var(--warm-brown);margin-top:4px;">
+        Demo: student@demo.com / password123 &bull; patron@demo.com / password123
+    </p>
+</form>
+          </div>
+        </div>
+      </div>
+    </section>
+  </div>
+
+  <!-- ============================================================ -->
+  <!-- ===== PAGE: REGISTER ===== -->
+  <!-- ============================================================ -->
+  <div class="page" id="page-register">
+    <section class="section" style="padding-top:40px;">
+      <div class="container">
+        <div class="text-center" style="max-width:720px;margin:0 auto;">
+          <h2 class="section-title">Create Your Account</h2>
+          <p class="section-sub" style="margin:0 auto 24px;">Join AcademiX as a student or patron.</p>
+
+          <div class="auth-selector" style="margin:16px 0;">
+            <div class="auth-option active" data-reg-role="student" onclick="selectRegRole('student')">
+              <div class="icon">🎓</div>
+              <h3>Student</h3>
+              <p>Researcher / contributor</p>
+            </div>
+            <div class="auth-option" data-reg-role="patron" onclick="selectRegRole('patron')">
+              <div class="icon">🏢</div>
+              <h3>Patron</h3>
+              <p>Business / data consumer</p>
+            </div>
+          </div>
+
+          <div class="form-card" style="max-width:100%;">
+            <form id="registerForm" onsubmit="handleRegister(event)" novalidate>
+              <!-- Student Fields -->
+              <div id="studentFields">
+                <div class="form-row">
+                  <div class="form-group">
+                    <label>Full Name</label>
+                    <input type="text" id="regFullName" placeholder="Thando Mokoena" required>
+                  </div>
+                  <div class="form-group">
+                    <label>Email Address</label>
+                    <input type="email" id="regEmail" placeholder="thando@university.ac.za" required>
+                  </div>
+                </div>
+                <div class="form-row">
+                  <div class="form-group">
+                    <label>Phone Number</label>
+                    <input type="tel" id="regPhone" placeholder="+27 82 123 4567" pattern="[0-9]{3}-[0-9]{3}-[0-9]{4}" required>
+                  </div>
+                  <div class="form-group">
+                    <label>Date of Birth</label>
+                    <input type="date" id="regDob">
+                  </div>
+                </div>
+                <div class="form-row">
+                  <div class="form-group">
+                    <label>Student Number</label>
+                    <input type="text" id="regStudentNum" placeholder="S12345678" required>
+                  </div>
+                  <div class="form-group">
+                    <label>South African ID Number</label>
+                    <input type="text" id="regIdNum" placeholder="890101 1234 567" required>
+                  </div>
+                </div>
+                <div class="form-group">
+                  <label>University</label>
+                  <select id="regUniversity" required>
+                    <option value="">Select University</option>
+                    <option value="University of Cape Town">University of Cape Town</option>
+                    <option value="University of the Witwatersrand">University of the Witwatersrand</option>
+                    <option value="University of Johannesburg">University of Johannesburg</option>
+                    <option value="University of Pretoria">University of Pretoria</option>
+                    <option value="Stellenbosch University">Stellenbosch University</option>
+                    <option value="University of KwaZulu-Natal">University of KwaZulu-Natal</option>
+                    <option value="North-West University">North-West University</option>
+                    <option value="University of South Africa">University of South Africa</option>
+                    <option value="Durban University of Technology">Durban University of Technology</option>
+                    <option value="Cape Peninsula University of Technology">Cape Peninsula University of Technology</option>
+                    <option value="Tshwane University of Technology">Tshwane University of Technology</option>
+                    <option value="Nelson Mandela University">Nelson Mandela University</option>
+                    <option value="University of the Free State">University of the Free State</option>
+                    <option value="University of Limpopo">University of Limpopo</option>
+                    <option value="University of Venda">University of Venda</option>
+                    <option value="Walter Sisulu University">Walter Sisulu University</option>
+                    <option value="Rhodes University">Rhodes University</option>
+                    <option value="University of Fort Hare">University of Fort Hare</option>
+                    <option value="Sefako Makgatho Health Sciences University">Sefako Makgatho Health Sciences University</option>
+                    <option value="Sol Plaatje University">Sol Plaatje University</option>
+                    <option value="University of Mpumalanga">University of Mpumalanga</option>
+                    <option value="Vaal University of Technology">Vaal University of Technology</option>
+                    <option value="Central University of Technology">Central University of Technology</option>
+                    <option value="Mangosuthu University of Technology">Mangosuthu University of Technology</option>
+                    <option value="STADIO">STADIO</option>
+                    <option value="IIE Varsity College">IIE Varsity College</option>
+                    <option value="Vega School">Vega School</option>
+                    <option value="Eduvos">Eduvos</option>
+                    <option value="Milpark Education">Milpark Education</option>
+                    <option value="MANCOSA">MANCOSA</option>
+                    <option value="Boston City Campus">Boston City Campus</option>
+                    <option value="Regenesys Education">Regenesys Education</option>
+                    <option value="Richfield Graduate Institute of Technology">Richfield Graduate Institute of Technology</option>
+                    <option value="AFDA">AFDA</option>
+                    <option value="Regent Business School">Regent Business School</option>
+                  </select>
+                </div>
+                <div class="form-row">
+                  <div class="form-group">
+                    <label>Faculty</label>
+                    <input type="text" id="regFaculty" placeholder="Faculty of Science">
+                  </div>
+                  <div class="form-group">
+                    <label>Degree / Programme</label>
+                    <input type="text" id="regDegree" placeholder="BSc Computer Science">
+                  </div>
+                </div>
+                <div class="form-row">
+                  <div class="form-group">
+                    <label>Year of Study</label>
+                    <select id="regYear">
+                      <option value="1">1st Year</option>
+                      <option value="2">2nd Year</option>
+                      <option value="3">3rd Year</option>
+                      <option value="4">4th Year</option>
+                      <option value="5">5th Year</option>
+                      <option value="postgrad">Postgraduate</option>
+                    </select>
+                  </div>
+                  <div class="form-group">
+                    <label>Academic Interests</label>
+                    <input type="text" id="regInterests" placeholder="AI, Data Science, Education">
+                  </div>
+                </div>
+              </div>
+
+              <!-- Patron Fields -->
+              <div id="patronFields" style="display:none;">
+                <div class="form-row">
+                  <div class="form-group">
+                    <label>Business Name</label>
+                    <input type="text" id="regBusinessName" placeholder="Acme Research Ltd">
+                  </div>
+                  <div class="form-group">
+                    <label>Trading Name</label>
+                    <input type="text" id="regTradingName" placeholder="Acme Research">
+                  </div>
+                </div>
+                <div class="form-row">
+                  <div class="form-group">
+                    <label>Company Registration Number</label>
+                    <input type="text" id="regRegistrationNumber" placeholder="2026/123456/07">
+                  </div>
+                  <div class="form-group">
+                    <label>Industry</label>
+                    <select id="regIndustry">
+                      <option value="Technology">Technology</option>
+                      <option value="Education">Education</option>
+                      <option value="Finance">Finance</option>
+                      <option value="Healthcare">Healthcare</option>
+                      <option value="Marketing">Marketing</option>
+                      <option value="Retail">Retail</option>
+                      <option value="Other">Other</option>
+                    </select>
+                  </div>
+                </div>
+                <div class="form-row">
+                  <div class="form-group">
+                    <label>Business Email</label>
+                    <input type="email" id="regBusinessEmail" placeholder="business@example.com">
+                  </div>
+                  <div class="form-group">
+                    <label>Business Phone</label>
+                    <input type="tel" id="regBusinessPhone" placeholder="031 000 0000">
+                  </div>
+                </div>
+                <div class="form-row">
+                  <div class="form-group">
+                    <label>Contact Person</label>
+                    <input type="text" id="regContactPerson" placeholder="Full name">
+                  </div>
+                  <div class="form-group">
+                    <label>Position</label>
+                    <input type="text" id="regPosition" placeholder="Director">
+                  </div>
+                </div>
+                <div class="notice" style="background:#fff0d8;border-left:4px solid var(--terracotta);padding:15px;border-radius:12px;margin:15px 0;">
+                  🏢 Your Patron account will be reviewed by AcademiX before full marketplace access is granted.
+                </div>
+              </div>
+
+              <!-- Common -->
+              <div class="form-row">
+                <div class="form-group">
+                  <label>Password</label>
+                  <input type="password" id="regPassword" placeholder="********" required>
+                </div>
+                <div class="form-group">
+                  <label>Confirm Password</label>
+                  <input type="password" id="regConfirmPassword" placeholder="********" required>
+                </div>
+              </div>
+
+              <button type="submit" class="btn btn-primary btn-block" id="registerBtn">Create Account</button>
+              <p style="margin-top:12px;font-size:0.85rem;color:var(--warm-brown);">
+                Already have an account? <a href="#" onclick="showPage('login')" style="color:var(--deep-green);font-weight:600;">Log In</a>
+              </p>
+            </form>
+          </div>
+        </div>
+      </div>
+    </section>
+  </div>
+
+  <!-- ============================================================ -->
+  <!-- ===== PAGE: VERIFICATION (student only) ===== -->
+  <!-- ============================================================ -->
+  <div class="page" id="page-verification">
+    <section class="section" style="padding-top:40px;">
+      <div class="container">
+        <div class="text-center" style="max-width:640px;margin:0 auto;">
+          <h2 class="section-title">Verify Your Identity</h2>
+          <p class="section-sub" style="margin:0 auto 24px;">Complete your verification to unlock full access.</p>
+          <div class="verification-flow">
+            <div class="veri-step done" id="veriStep1">
+              <span class="num">1</span>
+              <span>Student Number: <strong id="veriDisplayStudentNum">—</strong></span>
+              <span class="check">✓</span>
+            </div>
+            <div class="veri-step done" id="veriStep2">
+              <span class="num">2</span>
+              <span>ID Number: <strong id="veriDisplayIdNum">—</strong></span>
+              <span class="check">✓</span>
+            </div>
+            <div class="veri-step done" id="veriStep3">
+              <span class="num">3</span>
+              <span>University: <strong id="veriDisplayUni">—</strong></span>
+              <span class="check">✓</span>
+            </div>
+            <div class="veri-step" id="veriStep4">
+              <span class="num">4</span>
+              <span>Upload Proof of Identity</span>
+              <span style="font-size:0.75rem;color:var(--warm-brown);">(Student card or registration letter)</span>
+            </div>
+          </div>
+          <div style="margin-top:20px;">
+            <label style="font-weight:600;font-size:0.9rem;color:var(--deep-green);">Upload Document</label>
+            <input type="file" id="veriFileUpload" accept=".pdf,.jpg,.png" style="margin-top:4px;width:100%;padding:8px;border:2px dashed #e8e0d6;border-radius:8px;">
+            <button class="btn btn-primary btn-block" style="margin-top:16px;" onclick="submitVerification()">Submit Verification</button>
+          </div>
+          <div id="verificationStatus" style="margin-top:20px;text-align:center;font-weight:600;"></div>
+        </div>
+      </div>
+    </section>
+  </div>
+
+  <!-- ============================================================ -->
+  <!-- ===== STUDENT PAGES ===== -->
+  <!-- ============================================================ -->
+
+  <div class="page" id="page-student">
+    <section class="section" style="padding-top:24px;">
+      <div class="container">
+        <div class="flex justify-between wrap" style="margin-bottom:8px;">
+          <div>
+            <div class="dash-welcome" id="dashWelcome">Good morning, Thando</div>
+            <p style="color:var(--warm-brown);">Here's your research performance overview.</p>
+          </div>
+          <div style="display:flex;gap:12px;align-items:center;flex-wrap:wrap;">
+            <span class="verify-badge"><span class="icon">✓</span> Verified Human-Grade</span>
+            <button class="btn btn-danger btn-sm" onclick="confirmLogout()">Logout</button>
+          </div>
+        </div>
+        <div class="dash-grid">
+          <div class="dash-stat gold">
+            <div class="label">Wallet Balance</div>
+            <div class="value" id="dashWallet">R 1,250.00</div>
+            <div class="sub">Available for withdrawal</div>
+          </div>
+          <div class="dash-stat sage">
+            <div class="label">Total Earnings</div>
+            <div class="value" id="dashEarnings">R 1,250.00</div>
+            <div class="sub">+R 320 this month</div>
+          </div>
+          <div class="dash-stat terra">
+            <div class="label">Submissions</div>
+            <div class="value" id="dashSubmissions">8</div>
+            <div class="sub">6 Verified · 2 Pending</div>
+          </div>
+          <div class="dash-stat brown">
+            <div class="label">Similarity Score</div>
+            <div class="value" id="dashSimilarity">8%</div>
+            <div class="sub">Lower is better</div>
+          </div>
+        </div>
+        <div style="display:grid;grid-template-columns:1fr 1fr;gap:20px;margin-top:24px;">
+          <div class="card">
+            <h4 style="color:var(--deep-green);">Strikes</h4>
+            <div class="strike-indicator" id="strikeIndicator">
+              <span class="strike-dot filled">1</span>
+              <span class="strike-dot">2</span>
+              <span class="strike-dot">3</span>
+              <span style="font-size:0.85rem;color:var(--warm-brown);margin-left:8px;">1 / 3 strikes used</span>
+            </div>
+            <p style="font-size:0.8rem;color:var(--warm-brown);margin-top:8px;">Repeated violations may result in account suspension.</p>
+          </div>
+          <div class="card">
+            <h4 style="color:var(--deep-green);">Quick Actions</h4>
+            <div style="display:flex;gap:12px;flex-wrap:wrap;margin-top:8px;">
+              <button class="btn btn-primary btn-sm" onclick="showPage('student-upload')">Submit Research</button>
+              <button class="btn btn-gold btn-sm" onclick="showPage('student-wallet')">View Wallet</button>
+              <button class="btn btn-sage btn-sm" onclick="showPage('student-topics')">Browse Topics</button>
+            </div>
+          </div>
+        </div>
+        <div class="card" style="margin-top:24px;">
+          <div class="flex justify-between wrap">
+            <h4 style="color:var(--deep-green);">Recent Submissions</h4>
+            <button class="btn btn-secondary btn-sm" onclick="showPage('student-submissions')">View All</button>
+          </div>
+          <div class="table-wrap">
+            <table>
+              <thead><tr><th>Title</th><th>Date</th><th>Words</th><th>Similarity</th><th>Status</th><th>Earnings</th></tr></thead>
+              <tbody id="recentSubmissionsTable"></tbody>
+            </table>
+          </div>
+        </div>
+      </div>
+    </section>
+  </div>
+
+  <div class="page" id="page-student-profile">
+    <section class="section" style="padding-top:24px;">
+      <div class="container" style="max-width:800px;">
+        <h2 class="section-title">Your Profile</h2>
+        <div class="card" style="margin-top:16px;">
+          <div class="flex gap-3 wrap">
+            <div class="profile-avatar" id="profileAvatar">TM</div>
+            <div>
+              <h3 style="color:var(--deep-green);" id="profileName">Thando Mokoena</h3>
+              <p style="color:var(--warm-brown);" id="profileUni">University of Cape Town</p>
+              <p style="font-size:0.85rem;color:var(--warm-brown);" id="profileDetails">Year 3 - Faculty of Science</p>
+              <div style="display:flex;gap:8px;margin-top:6px;flex-wrap:wrap;">
+                <span class="badge badge-green">Verified Student</span>
+                <span class="badge badge-gold">8 Submissions</span>
+                <span class="badge badge-terra">R 1,250 Earned</span>
+              </div>
+            </div>
+          </div>
+          <hr style="margin:20px 0;border-color:#f0ebe4;">
+          <div style="display:grid;grid-template-columns:1fr 1fr;gap:16px;">
+            <div><strong>Academic Interests</strong><br><span id="profileInterests" style="color:var(--warm-brown);">AI, Data Science, Education</span></div>
+            <div><strong>Skills</strong><br><span id="profileSkills" style="color:var(--warm-brown);">Research, Writing, Python</span></div>
+            <div><strong>Contributor Rating</strong><br><span style="color:var(--golden-tan);font-weight:700;">4.8</span></div>
+            <div><strong>Verified Submissions</strong><br><span style="font-weight:700;">6</span></div>
+          </div>
+        </div>
+      </div>
+    </section>
+  </div>
+
+  <div class="page" id="page-student-wallet">
+    <section class="section" style="padding-top:24px;">
+      <div class="container">
+        <h2 class="section-title">Wallet</h2>
+        <div class="wallet-balance">
+          <div>
+            <div class="label">Available Balance</div>
+            <div class="amount" id="walletBalance">R 1,250.00</div>
+          </div>
+          <div class="actions">
+            <button class="btn btn-gold" onclick="openWithdraw()">Withdraw</button>
+            <button class="btn btn-secondary" style="color:#fff;border-color:rgba(255,255,255,0.3);" onclick="showPage('student-bank')">Bank Details</button>
+          </div>
+        </div>
+        <div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:16px;margin-top:20px;">
+          <div class="card"><span style="color:var(--warm-brown);">Pending Earnings</span><br><strong style="font-size:1.4rem;color:var(--deep-green);">R 240.00</strong></div>
+          <div class="card"><span style="color:var(--warm-brown);">Total Lifetime</span><br><strong style="font-size:1.4rem;color:var(--deep-green);">R 1,250.00</strong></div>
+          <div class="card"><span style="color:var(--warm-brown);">Withdrawable</span><br><strong style="font-size:1.4rem;color:var(--golden-tan);">R 1,250.00</strong></div>
+        </div>
+        <div class="card" style="margin-top:24px;">
+          <h4 style="color:var(--deep-green);">Transaction History</h4>
+          <div class="table-wrap">
+            <table>
+              <thead><tr><th>Date</th><th>Activity</th><th>Amount</th><th>Status</th></tr></thead>
+              <tbody id="transactionTable"></tbody>
+            </table>
+          </div>
+        </div>
+      </div>
+    </section>
+  </div>
+
+  <div class="page" id="page-student-bank">
+    <section class="section" style="padding-top:24px;">
+      <div class="container" style="max-width:560px;">
+        <h2 class="section-title">Banking Details</h2>
+        <div class="form-card" style="margin-top:16px;">
+          <form id="bankForm" onsubmit="saveBankDetails(event)">
+            <div class="form-group">
+              <label>Account Holder Name</label>
+              <input type="text" id="bankHolder" placeholder="Thando Mokoena" required>
+            </div>
+            <div class="form-group">
+              <label>Bank</label>
+              <select id="bankName" required>
+                <option value="">Select your bank</option>
+                <option value="ABSA">ABSA</option>
+                <option value="Capitec">Capitec</option>
+                <option value="FNB">FNB</option>
+                <option value="Nedbank">Nedbank</option>
+                <option value="Standard Bank">Standard Bank</option>
+                <option value="Investec">Investec</option>
+                <option value="Discovery Bank">Discovery Bank</option>
+                <option value="TymeBank">TymeBank</option>
+              </select>
+            </div>
+            <div class="form-group">
+              <label>Account Number</label>
+              <input type="text" id="bankAccount" placeholder="1234567890" required>
+            </div>
+            <div class="form-row">
+              <div class="form-group">
+                <label>Account Type</label>
+                <select id="bankType">
+                  <option value="Cheque">Cheque</option>
+                  <option value="Savings">Savings</option>
+                  <option value="Transmission">Transmission</option>
+                </select>
+              </div>
+              <div class="form-group">
+                <label>Branch Code</label>
+                <input type="text" id="bankBranch" placeholder="123456">
+              </div>
+            </div>
+            <button type="submit" class="btn btn-primary btn-block">Save Banking Details</button>
+            <p style="margin-top:8px;font-size:0.8rem;color:var(--warm-brown);">Your banking information is securely stored and masked.</p>
+          </form>
+          <div id="bankSaved" style="display:none;margin-top:16px;padding:16px;background:#f6faf5;border-radius:8px;border-left:4px solid var(--sage-green);">
+            <p style="font-weight:600;color:var(--deep-green);">✓ Banking details saved</p>
+            <p style="font-size:0.85rem;color:var(--warm-brown);">Account ending: <strong id="bankMasked">4821</strong></p>
+          </div>
+        </div>
+      </div>
+    </section>
+  </div>
+
+  <div class="page" id="page-student-topics">
+    <section class="section" style="padding-top:24px;">
+      <div class="container">
+        <h2 class="section-title">Research Topics</h2>
+        <p style="color:var(--warm-brown);margin-bottom:16px;">Browse available topics and start your research.</p>
+        <div class="topics-grid" id="topicsGrid"></div>
+      </div>
+    </section>
+  </div>
+
+  <div class="page" id="page-student-upload">
+    <section class="section" style="padding-top:24px;">
+      <div class="container" style="max-width:720px;">
+        <h2 class="section-title">Submit Research</h2>
+        <div class="form-card" style="margin-top:16px;">
+          <form id="uploadForm" onsubmit="handleUpload(event)">
+            <div class="form-group">
+              <label>Select Topic</label>
+              <select id="uploadTopic" required>
+                <option value="">Choose a topic</option>
+              </select>
+            </div>
+            <div class="form-group">
+              <label>Research Title</label>
+              <input type="text" id="uploadTitle" placeholder="The Impact of AI on Higher Education" required>
+            </div>
+            <div class="form-group">
+              <label>Upload Document (PDF, DOC, DOCX)</label>
+              <input type="file" id="uploadFile" accept=".pdf,.doc,.docx" required>
+              <span style="font-size:0.75rem;color:var(--warm-brown);">Max 10MB</span>
+            </div>
+            <div class="form-group">
+              <label>References (optional)</label>
+              <textarea id="uploadRefs" placeholder="List your references here..."></textarea>
+            </div>
+            <div style="background:#f8f5f0;padding:16px;border-radius:8px;margin-bottom:16px;">
+              <h5 style="color:var(--deep-green);">Submission Checklist</h5>
+              <ul style="list-style:none;font-size:0.9rem;color:var(--warm-brown);">
+                <li>✓ Original research</li>
+                <li>✓ Correct topic</li>
+                <li>✓ References included</li>
+                <li>✓ Academic writing</li>
+                <li>✓ No plagiarism</li>
+                <li>✓ Required word count met</li>
+              </ul>
+            </div>
+            <button type="submit" class="btn btn-primary btn-block">Submit for AI Verification</button>
+          </form>
+        </div>
+      </div>
+    </section>
+  </div>
+
+  <div class="page" id="page-student-submissions">
+    <section class="section" style="padding-top:24px;">
+      <div class="container">
+        <h2 class="section-title">My Submissions</h2>
+        <div class="card" style="margin-top:16px;">
+          <div class="table-wrap">
+            <table>
+              <thead><tr><th>Title</th><th>Date</th><th>Words</th><th>Similarity</th><th>Score</th><th>Status</th><th>Earnings</th></tr></thead>
+              <tbody id="allSubmissionsTable"></tbody>
+            </table>
+          </div>
+        </div>
+      </div>
+    </section>
+  </div>
+
+  <div class="page" id="page-student-docs">
+    <section class="section" style="padding-top:24px;">
+      <div class="container">
+        <h2 class="section-title">Documents</h2>
+        <p style="color:var(--warm-brown);margin-bottom:16px;">Manage your uploaded documents.</p>
+        <div class="doc-grid" id="docGrid"></div>
+        <div class="card" style="margin-top:20px;">
+          <h4 style="color:var(--deep-green);">Upload New Document</h4>
+          <input type="file" id="docUpload" accept=".pdf,.jpg,.png" style="margin-top:8px;width:100%;padding:8px;border:2px dashed #e8e0d6;border-radius:8px;">
+          <button class="btn btn-sage btn-sm" style="margin-top:12px;" onclick="uploadDocument()">Upload</button>
+        </div>
+      </div>
+    </section>
+  </div>
+
+  <div class="page" id="page-ai-verify">
+    <section class="section" style="padding-top:40px;">
+      <div class="container text-center" style="max-width:600px;">
+        <h2 class="section-title">AI Verification</h2>
+        <div class="card" style="margin-top:16px;padding:40px;">
+          <div id="verificationProgress">
+            <div class="spinner"></div>
+            <p style="font-weight:600;color:var(--deep-green);margin-top:12px;">Analysing Submission...</p>
+            <div style="text-align:left;max-width:320px;margin:16px auto;">
+              <div style="display:flex;justify-content:space-between;padding:6px 0;border-bottom:1px solid #f0ebe4;">
+                <span style="color:var(--warm-brown);">Academic tone</span>
+                <span style="color:var(--sage-green);">✓</span>
+              </div>
+              <div style="display:flex;justify-content:space-between;padding:6px 0;border-bottom:1px solid #f0ebe4;">
+                <span style="color:var(--warm-brown);">Structural coherence</span>
+                <span style="color:var(--sage-green);">✓</span>
+              </div>
+              <div style="display:flex;justify-content:space-between;padding:6px 0;border-bottom:1px solid #f0ebe4;">
+                <span style="color:var(--warm-brown);">Source plausibility</span>
+                <span style="color:var(--sage-green);">✓</span>
+              </div>
+              <div style="display:flex;justify-content:space-between;padding:6px 0;border-bottom:1px solid #f0ebe4;">
+                <span style="color:var(--warm-brown);">Word count</span>
+                <span style="color:var(--sage-green);">✓</span>
+              </div>
+              <div style="display:flex;justify-content:space-between;padding:6px 0;border-bottom:1px solid #f0ebe4;">
+                <span style="color:var(--warm-brown);">Similarity analysis</span>
+                <span style="color:var(--sage-green);">✓</span>
+              </div>
+              <div style="display:flex;justify-content:space-between;padding:6px 0;">
+                <span style="color:var(--warm-brown);">Research depth</span>
+                <span style="color:var(--sage-green);">✓</span>
+              </div>
+            </div>
+          </div>
+          <div id="verificationResult" style="display:none;">
+            <div style="font-size:4rem;color:var(--golden-tan);" class="check-pop">✅</div>
+            <h3 style="color:var(--deep-green);font-size:1.8rem;">VERIFIED HUMAN-GRADE</h3>
+            <div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:12px;margin:20px 0;text-align:center;">
+              <div><span style="color:var(--warm-brown);">Score</span><br><strong style="font-size:1.4rem;color:var(--deep-green);">94%</strong></div>
+              <div><span style="color:var(--warm-brown);">Similarity</span><br><strong style="font-size:1.4rem;color:var(--sage-green);">7%</strong></div>
+              <div><span style="color:var(--warm-brown);">Earnings</span><br><strong style="font-size:1.4rem;color:var(--golden-tan);">+R 120.00</strong></div>
+            </div>
+            <span class="verify-badge" style="font-size:1rem;padding:8px 24px;"><span class="icon">✓</span> Verified Human-Grade</span>
+            <br><br>
+            <button class="btn btn-primary" onclick="showPage('student')">Go to Dashboard</button>
+          </div>
+          <div id="verificationFailed" style="display:none;">
+            <div style="font-size:4rem;color:var(--terracotta);">❌</div>
+            <h3 style="color:var(--terracotta);">Verification Failed</h3>
+            <p style="color:var(--warm-brown);">Your submission did not meet the required standards.</p>
+            <ul style="text-align:left;max-width:320px;margin:12px auto;color:var(--warm-brown);">
+              <li>Excessive similarity detected (34%)</li>
+              <li>Insufficient academic structure</li>
+              <li>Word count requirement not met</li>
+            </ul>
+            <p style="font-weight:600;color:var(--terracotta);">Strike applied: 1 / 3</p>
+            <button class="btn btn-terra" style="margin-top:12px;" onclick="showPage('student')">Return to Dashboard</button>
+          </div>
+        </div>
+      </div>
+    </section>
+  </div>
+
+  <!-- ============================================================ -->
+  <!-- ===== PATRON PAGES ===== -->
+  <!-- ============================================================ -->
+
+  <div class="page" id="page-patron-dashboard">
+    <section class="section" style="padding-top:24px;">
+      <div class="container">
+        <div class="flex justify-between wrap">
+          <div>
+            <div class="dash-welcome" style="color:var(--deep-green);">Welcome, Patron</div>
+            <p style="color:var(--warm-brown);">Access verified research datasets.</p>
+          </div>
+          <button class="btn btn-danger btn-sm" onclick="confirmLogout()">Logout</button>
+        </div>
+        <div class="patron-stats">
+          <div class="card"><span style="color:var(--warm-brown);">Research Available</span><br><strong style="font-size:1.8rem;color:var(--deep-green);" id="patronStatAvailable">742</strong></div>
+          <div class="card"><span style="color:var(--warm-brown);">Research Purchased</span><br><strong style="font-size:1.8rem;color:var(--deep-green);" id="patronStatPurchased">0</strong></div>
+          <div class="card"><span style="color:var(--warm-brown);">Saved Research</span><br><strong style="font-size:1.8rem;color:var(--deep-green);" id="patronStatSaved">0</strong></div>
+          <div class="card"><span style="color:var(--warm-brown);">Total Spent</span><br><strong style="font-size:1.8rem;color:var(--golden-tan);" id="patronStatSpent">R0</strong></div>
+        </div>
+        <div class="patron-grid">
+          <div>
+            <div class="card">
+              <h4 style="color:var(--deep-green);">Business Verification</h4>
+              <div class="notice" style="background:#e5f0e9;border-left:4px solid var(--deep-green);padding:15px;border-radius:12px;margin:15px 0;">
+                ✓ <b>Verified Patron</b><br>Your business has access to AcademiX's verified research marketplace.
+              </div>
+              <button class="btn btn-primary" onclick="showPage('patron-marketplace')">Explore Verified Research →</button>
+            </div>
+            <div class="card" style="margin-top:20px;">
+              <h4 style="color:var(--deep-green);">Recently Added Research</h4>
+              <div id="recentResearch"></div>
+            </div>
+          </div>
+          <div>
+            <div class="card">
+              <h4 style="color:var(--deep-green);">Why Verified Research?</h4>
+              <p>Every research item in the AcademiX marketplace passes through our verification pipeline.</p>
+              <div class="notice" style="background:#f5f0ea;border-left:4px solid var(--golden-tan);padding:15px;border-radius:12px;margin:15px 0;">🎓 Verified Student</div>
+              <div class="notice" style="background:#f5f0ea;border-left:4px solid var(--sage-green);padding:15px;border-radius:12px;margin:15px 0;">🔬 Verified Research</div>
+              <div class="notice" style="background:#f5f0ea;border-left:4px solid var(--terracotta);padding:15px;border-radius:12px;margin:15px 0;">🏢 Verified Patron</div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+  </div>
+
+  <div class="page" id="page-patron-marketplace">
+    <section class="section" style="padding-top:24px;">
+      <div class="container">
+        <h2 class="section-title">Explore Research</h2>
+        <p style="color:var(--warm-brown);margin-bottom:16px;">Search verified human-generated research.</p>
+        <div style="display:flex;gap:10px;margin:25px 0;flex-wrap:wrap;">
+          <input id="patronSearch" placeholder="Search research, topics or subjects..." oninput="filterPatronResearch()" style="flex:1;padding:13px 15px;border:1px solid #e8e0d6;border-radius:12px;background:#fffdf8;">
+          <select id="patronCategoryFilter" onchange="filterPatronResearch()" style="padding:13px 15px;border:1px solid #e8e0d6;border-radius:12px;background:#fffdf8;">
+            <option value="All Categories">All Categories</option>
+            <option value="Technology">Technology</option>
+            <option value="Business">Business</option>
+            <option value="Education">Education</option>
+            <option value="Psychology">Psychology</option>
+            <option value="Finance">Finance</option>
+          </select>
+        </div>
+        <div class="topics-grid" id="patronMarketGrid"></div>
+      </div>
+    </section>
+  </div>
+
+  <div class="page" id="page-patron-saved">
+    <section class="section" style="padding-top:24px;">
+      <div class="container">
+        <h2 class="section-title">Saved Research</h2>
+        <p style="color:var(--warm-brown);margin-bottom:16px;">Research you've bookmarked.</p>
+        <div class="topics-grid" id="patronSavedGrid"></div>
+      </div>
+    </section>
+  </div>
+
+  <div class="page" id="page-patron-purchases">
+    <section class="section" style="padding-top:24px;">
+      <div class="container">
+        <h2 class="section-title">My Purchases</h2>
+        <p style="color:var(--warm-brown);margin-bottom:16px;">Your purchased research.</p>
+        <div class="card">
+          <div class="table-wrap">
+            <table>
+              <thead><tr><th>Research</th><th>Category</th><th>Date</th><th>Price</th><th>Action</th></tr></thead>
+              <tbody id="patronPurchaseTable"></tbody>
+            </table>
+          </div>
+        </div>
+      </div>
+    </section>
+  </div>
+
+  <div class="page" id="page-patron-account">
+    <section class="section" style="padding-top:24px;">
+      <div class="container" style="max-width:720px;">
+        <h2 class="section-title">Business Account</h2>
+        <p style="color:var(--warm-brown);margin-bottom:16px;">Manage your Patron profile and verification.</p>
+        <div class="card">
+          <h2 id="patronAccountBusiness" style="color:var(--deep-green);">Acme Research Ltd</h2>
+          <p><b>Account Type:</b> Patron / Business</p>
+          <p><b>Industry:</b> Technology</p>
+          <p><b>Registration Number:</b> 2026/123456/07</p>
+          <p><b>Contact:</b> Amina Essack</p>
+          <div class="notice" style="background:#e5f0e9;border-left:4px solid var(--deep-green);padding:15px;border-radius:12px;margin:15px 0;">
+            ✓ <b>Business Verified</b><br>Your account has full marketplace access.
+          </div>
+        </div>
+        <div class="card" style="margin-top:20px;">
+          <h4 style="color:var(--deep-green);">Privacy & Security</h4>
+          <p class="muted" style="color:var(--warm-brown);">AcademiX keeps private student information hidden from Patrons. You only receive the approved research information included in the purchased research package.</p>
+          <button class="btn btn-secondary" style="margin-top:12px;" onclick="showToast('Security settings opened')">Security Settings</button>
+        </div>
+      </div>
+    </section>
+  </div>
+
+  <!-- ============================================================ -->
+  <!-- ===== JAVASCRIPT ===== -->
+  <!-- ============================================================ -->
+  <script>
+    // ===== STATE =====
+    const AppState = {
+        currentUser: null,
+        students: [],
+        submissions: [],
+        transactions: [],
+        topics: [],
+        documents: [],
+        verificationStatus: null,
+        bankDetails: null,
+        strikes: 1,
+        walletBalance: 1250,
+        totalEarnings: 1250,
+        verifiedSubmissions: 6,
+        pendingSubmissions: 2,
+        similarityScore: 8,
+        isVerified: true,
+        nextSubmissionId: 1001,
+        nextDocId: 1,
+        patron: {
+            saved: [],
+            purchases: []
+        }
+    };
+
+    // ===== RESEARCH DATA =====
+    const researchItems = [
+        { id: 1, title: 'The Impact of Artificial Intelligence on Higher Education', category: 'Technology', words: 2450, quality: 94, similarity: 7, price: 245, student: 'Verified Student', description: 'An academic analysis of how AI is changing teaching, assessment and student learning.' },
+        { id: 2, title: 'Digital Transformation in South African Small Businesses', category: 'Business', words: 1800, quality: 91, similarity: 9, price: 180, student: 'Verified Student', description: 'Research exploring how small businesses are adopting digital tools and platforms.' },
+        { id: 3, title: 'Social Media and Student Mental Wellbeing', category: 'Psychology', words: 2200, quality: 96, similarity: 6, price: 220, student: 'Verified Student', description: 'A structured study investigating the relationship between social media usage and student wellbeing.' },
+        { id: 4, title: 'Sustainable Business Practices in South Africa', category: 'Business', words: 1500, quality: 89, similarity: 11, price: 150, student: 'Verified Student', description: 'Research examining sustainability strategies used by South African businesses.' },
+        { id: 5, title: 'Financial Literacy Among University Students', category: 'Finance', words: 2000, quality: 93, similarity: 8, price: 200, student: 'Verified Student', description: 'Research into financial knowledge, budgeting and financial decision-making among students.' },
+        { id: 6, title: 'The Future of Remote Learning', category: 'Education', words: 1750, quality: 90, similarity: 10, price: 175, student: 'Verified Student', description: 'An investigation into the future of online and hybrid education.' }
+    ];
+
+    // ===== HELPERS =====
+    function saveState() {
+        localStorage.setItem('academix_state', JSON.stringify(AppState));
+    }
+
+    function loadState() {
+        const saved = localStorage.getItem('academix_state');
+        if (saved) {
+            try {
+                const parsed = JSON.parse(saved);
+                Object.assign(AppState, parsed);
+            } catch (e) {}
+        }
+    }
+
+      function seedData() {
+        if (localStorage.getItem('academix_seeded')) return;
+        AppState.topics = [
+            { id: 1, title: 'The Impact of Artificial Intelligence on Higher Education', category: 'Technology', difficulty: 'Intermediate', wordTarget: 1500, rate: 0.10, earnings: 150, deadline: '2026-09-15', contributorsNeeded: 5 },
+            { id: 2, title: 'Climate Change and Urban Resilience in South Africa', category: 'Environmental Science', difficulty: 'Advanced', wordTarget: 2000, rate: 0.12, earnings: 240, deadline: '2026-10-01', contributorsNeeded: 8 },
+            { id: 3, title: 'Public Health Policy in Post-Pandemic Africa', category: 'Public Health', difficulty: 'Intermediate', wordTarget: 1800, rate: 0.10, earnings: 180, deadline: '2026-09-30', contributorsNeeded: 6 },
+            { id: 4, title: 'Economic Inequality and Digital Inclusion', category: 'Economics', difficulty: 'Advanced', wordTarget: 2200, rate: 0.11, earnings: 242, deadline: '2026-10-15', contributorsNeeded: 4 },
+            { id: 5, title: 'The Role of Indigenous Knowledge in Modern Science', category: 'Social Sciences', difficulty: 'Beginner', wordTarget: 1200, rate: 0.08, earnings: 96, deadline: '2026-08-30', contributorsNeeded: 10 },
+            { id: 6, title: 'Cybersecurity in Financial Systems', category: 'Technology', difficulty: 'Advanced', wordTarget: 2500, rate: 0.14, earnings: 350, deadline: '2026-11-01', contributorsNeeded: 3 }
+        ];
+        AppState.submissions = [
+            { id: 1001, title: 'AI in Higher Education', date: '2026-08-10', words: 1200, similarity: 8, score: 94, status: 'Verified', earnings: 150 },
+            { id: 1002, title: 'Climate Change Adaptation', date: '2026-08-05', words: 1800, similarity: 12, score: 88, status: 'Verified', earnings: 240 },
+            { id: 1003, title: 'Public Health Policy', date: '2026-07-28', words: 1500, similarity: 6, score: 91, status: 'Pending', earnings: 0 }
+        ];
+        AppState.transactions = [
+            { date: '2026-08-10', activity: 'Research Submission', amount: 150, status: 'Verified' },
+            { date: '2026-08-05', activity: 'Research Submission', amount: 240, status: 'Verified' },
+            { date: '2026-07-28', activity: 'Research Submission', amount: 0, status: 'Pending' }
+        ];
+        AppState.documents = [
+            { id: 1, name: 'student_card.pdf', type: 'Document', date: '2026-08-01', status: 'Verified' }
+        ];
+        localStorage.setItem('academix_seeded', 'true');
+        saveState();
+    }
+
+
+    // ===== TOAST =====
+    function showToast(message, type = 'success') {
+        const container = document.getElementById('toastContainer');
+        const toast = document.createElement('div');
+        toast.className = 'toast';
+        if (type === 'success') toast.classList.add('toast-success');
+        else if (type === 'error') toast.classList.add('toast-error');
+        else if (type === 'warning') toast.classList.add('toast-warning');
+        toast.innerHTML = `<span class="toast-icon">${type === 'success' ? '✅' : type === 'error' ? '❌' : '⚠️'}</span> ${message}`;
+        container.appendChild(toast);
+        setTimeout(() => toast.remove(), 3000);
+    }
+
+    // ===== MODAL =====
+    function openModal(title, contentHTML) {
+        document.getElementById('modalTitle').textContent = title;
+        document.getElementById('modalContent').innerHTML = contentHTML;
+        document.getElementById('modalOverlay').classList.add('open');
+    }
+    function closeModal() {
+        document.getElementById('modalOverlay').classList.remove('open');
+    }
+    document.getElementById('modalOverlay').addEventListener('click', function(e) {
+        if (e.target === this) closeModal();
+    });
+
+    // ===== PAGE NAV =====
+    function showPage(pageId) {
+        document.querySelectorAll('.page').forEach(p => p.classList.remove('active'));
+        const target = document.getElementById('page-' + pageId);
+        if (target) target.classList.add('active');
+        const user = AppState.currentUser;
+        const isStudent = user && user.role === 'student';
+        const isPatron = user && user.role === 'patron';
+        document.querySelectorAll('.student-only').forEach(el => el.classList.toggle('hidden', !isStudent));
+        document.querySelectorAll('.patron-only').forEach(el => el.classList.toggle('hidden', !isPatron));
+        const logoutLink = document.getElementById('logoutLink');
+        if (user) logoutLink.classList.remove('hidden');
+        else logoutLink.classList.add('hidden');
+        document.getElementById('navLinks').classList.remove('open');
+        // re-render
+        if (pageId === 'student') renderStudentDashboard();
+        else if (pageId === 'student-wallet') renderWallet();
+        else if (pageId === 'student-profile') renderProfile();
+        else if (pageId === 'student-topics') renderTopics();
+        else if (pageId === 'student-upload') {
+            // Rebuild the topic dropdown every time the Submit page opens.
+            populateTopicSelect(
+                AppState.selectedTopic ? AppState.selectedTopic.id : null
+            );
+        }
+        else if (pageId === 'student-submissions') renderAllSubmissions();
+        else if (pageId === 'student-docs') renderDocuments();
+        else if (pageId === 'student-bank') renderBankDetails();
+        else if (pageId === 'patron-dashboard') renderPatronDashboard();
+        else if (pageId === 'patron-marketplace') renderPatronMarketplace();
+        else if (pageId === 'patron-saved') renderPatronSaved();
+        else if (pageId === 'patron-purchases') renderPatronPurchases();
+        else if (pageId === 'patron-account') renderPatronAccount();
+    }
+
+    // ===== AUTH ROLE SELECTOR (login) =====
+    let selectedAuthRole = 'student';
+    function selectAuthRole(role) {
+        selectedAuthRole = role;
+        document.querySelectorAll('.auth-option').forEach(el => el.classList.remove('active'));
+        document.querySelector(`.auth-option[data-role="${role}"]`).classList.add('active');
+    }
+
+    // ===== REGISTRATION ROLE TOGGLE =====
+    let selectedRegRole = 'student';
+    function selectRegRole(role) {
+        selectedRegRole = role;
+        document.querySelectorAll('[data-reg-role]').forEach(el => el.classList.remove('active'));
+        document.querySelector(`[data-reg-role="${role}"]`).classList.add('active');
+        document.getElementById('studentFields').style.display = (role === 'student') ? 'block' : 'none';
+        document.getElementById('patronFields').style.display = (role === 'patron') ? 'block' : 'none';
+        // toggle required
+        document.querySelectorAll('#patronFields input, #patronFields select').forEach(inp => {
+            if (role === 'patron') inp.setAttribute('required', 'required');
+            else inp.removeAttribute('required');
+        });
+        document.querySelectorAll('#studentFields input, #studentFields select').forEach(inp => {
+            if (role === 'student') inp.setAttribute('required', 'required');
+            else inp.removeAttribute('required');
+        });
+    }
+
+    // ===== LOGIN (UPDATED: Flask API) =====
+    function handleLogin(e) {
+        e.preventDefault();
+        const email = document.getElementById('loginEmail').value.trim();
+        const password = document.getElementById('loginPassword').value;
+
+        if (!email || !password) {
+            showToast('Please fill in all fields.', 'error');
+            return;
+        }
+
+        // Check demo accounts first (for quick testing)
+        if (email === 'student@demo.com' && password === 'password123') {
+            AppState.currentUser = {
+                role: 'student',
+                name: 'Thando Mokoena',
+                email: 'student@demo.com',
+                university: 'University of Cape Town',
+                degree: 'BSc Computer Science',
+                faculty: 'Science',
+                year: '3',
+                interests: 'AI, Data Science, Education',
+                skills: 'Research, Writing, Python',
+                verified: true
+            };
+            saveState();
+            showToast('Welcome back, Thando!', 'success');
+            showPage('student');
+            return;
+        }
+
+        if (email === 'patron@demo.com' && password === 'password123') {
+            AppState.currentUser = { role: 'patron', name: 'Patron User', email: 'patron@demo.com' };
+            saveState();
+            showToast('Welcome, Patron!', 'success');
+            showPage('patron-dashboard');
+            return;
+        }
+
+        // Send to Flask backend
+        fetch('/api/login', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ email, password })
+        })
+        .then(response => response.json())
+        .then(data => {
+            if (data.success) {
+                AppState.currentUser = {
+                    role: data.role,
+                    name: data.name,
+                    email: data.email,
+                    wallet: data.wallet || 0,
+                    strikes: data.strikes || 0
+                };
+                saveState();
+                showToast('Welcome back, ' + data.name + '!', 'success');
+                if (data.role === 'scribe' || data.role === 'student') {
+                    showPage('student');
+                } else if (data.role === 'patron') {
+                    showPage('patron-dashboard');
+                } else {
+                    showPage('landing');
+                }
+            } else {
+                showToast(data.error || 'Login failed', 'error');
+            }
+        })
+        .catch(error => {
+            showToast('Connection error. Please try again.', 'error');
+        });
+    }
+
+    // ===== REGISTER (UPDATED: Flask API) =====
+    function handleRegister(e) {
+        e.preventDefault();
+        const role = selectedRegRole;
+        const password = document.getElementById('regPassword').value;
+        const confirm = document.getElementById('regConfirmPassword').value;
+
+        if (password !== confirm) {
+            showToast('Passwords do not match.', 'error');
+            return;
+        }
+
+        let userData = { role };
+
+        if (role === 'student') {
+            userData = {
+                ...userData,
+                full_name: document.getElementById('regFullName').value.trim(),
+                email: document.getElementById('regEmail').value.trim(),
+                phone: document.getElementById('regPhone').value.trim(),
+                dob: document.getElementById('regDob').value,
+                student_num: document.getElementById('regStudentNum').value.trim(),
+                id_num: document.getElementById('regIdNum').value.trim(),
+                university: document.getElementById('regUniversity').value,
+                faculty: document.getElementById('regFaculty').value.trim(),
+                degree: document.getElementById('regDegree').value.trim(),
+                year: document.getElementById('regYear').value,
+                interests: document.getElementById('regInterests').value.trim(),
+                password: password
+            };
+        } else {
+            userData = {
+                ...userData,
+                company_name: document.getElementById('regBusinessName').value.trim(),
+                trading_name: document.getElementById('regTradingName').value.trim(),
+                reg_number: document.getElementById('regRegistrationNumber').value.trim(),
+                industry: document.getElementById('regIndustry').value,
+                email: document.getElementById('regBusinessEmail').value.trim(),
+                phone: document.getElementById('regBusinessPhone').value.trim(),
+                contact_person: document.getElementById('regContactPerson').value.trim(),
+                position: document.getElementById('regPosition').value.trim(),
+                address: 'Not provided',
+                password: password
+            };
+        }
+
+        fetch('/api/register', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify(userData)
+        })
+        .then(response => response.json())
+        .then(data => {
+            if (data.success) {
+                showToast(data.message || 'Account created! Please login.', 'success');
+                showPage('login');
+            } else {
+                showToast(data.error || 'Registration failed', 'error');
+            }
+        })
+        .catch(error => {
+            showToast('Connection error. Please try again.', 'error');
+        });
+    }
+
+    // ===== VERIFICATION =====
+    function updateVerificationDisplay() {
+        const v = AppState.verificationStatus || {};
+        document.getElementById('veriDisplayStudentNum').textContent = v.studentNum || '—';
+        document.getElementById('veriDisplayIdNum').textContent = v.idNum || '—';
+        document.getElementById('veriDisplayUni').textContent = v.university || '—';
+        if (v.fileUploaded) {
+            document.getElementById('veriStep4').classList.add('done');
+            document.getElementById('veriStep4').querySelector('.check').textContent = '✓';
+        }
+    }
+
+    function submitVerification() {
+        const fileInput = document.getElementById('veriFileUpload');
+        if (!fileInput.files || fileInput.files.length === 0) {
+            showToast('Please upload a document.', 'warning');
+            return;
+        }
+
+        // Send to Flask API
+        const formData = new FormData();
+        formData.append('file', fileInput.files[0]);
+
+        fetch('/api/verify', {
+            method: 'POST',
+            body: formData
+        })
+        .then(response => response.json())
+        .then(data => {
+            if (data.success) {
+                AppState.verificationStatus.fileUploaded = true;
+                AppState.isVerified = true;
+                saveState();
+                updateVerificationDisplay();
+                document.getElementById('verificationStatus').innerHTML = '<span style="color:var(--sage-green);">✅ Verification successful! You are now verified.</span>';
+                showToast('Verification successful!', 'success');
+                setTimeout(() => showPage('student'), 1500);
+            } else {
+                showToast(data.error || 'Verification failed', 'error');
+            }
+        })
+        .catch(error => {
+            showToast('Connection error. Please try again.', 'error');
+        });
+    }
+
+    // ===== LOGOUT =====
+    function confirmLogout() {
+        if (confirm('Are you sure you want to log out?')) {
+            fetch('/api/logout', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' }
+            })
+            .then(response => response.json())
+            .then(data => {
+                AppState.currentUser = null;
+                saveState();
+                document.querySelectorAll('.student-only, .patron-only').forEach(el => el.classList.add('hidden'));
+                document.getElementById('logoutLink').classList.add('hidden');
+                showToast('Logged out.', 'warning');
+                showPage('landing');
+            })
+            .catch(() => {
+                // Even if API fails, log out locally
+                AppState.currentUser = null;
+                saveState();
+                document.querySelectorAll('.student-only, .patron-only').forEach(el => el.classList.add('hidden'));
+                document.getElementById('logoutLink').classList.add('hidden');
+                showToast('Logged out.', 'warning');
+                showPage('landing');
+            });
+        }
+    }
+
+    // ===== UPLOAD (UPDATED: Flask API) =====
+    function handleUpload(e) {
+    e.preventDefault();
+    const topicId = document.getElementById('uploadTopic').value;
+    const title = document.getElementById('uploadTitle').value.trim();
+    const fileInput = document.getElementById('uploadFile');
+
+    // ===== VALIDATION =====
+    if (!topicId || !title || !fileInput.files || fileInput.files.length === 0) {
+        showToast('Please fill in all required fields and upload a document.', 'error');
+        return;
+    }
+
+    if (!AppState.currentUser || !AppState.currentUser.email) {
+        showToast('Please login first.', 'error');
+        return;
+    }
+
+    // ===== BUILD FORM DATA =====
+    const formData = new FormData();
+    formData.append('file', fileInput.files[0]);
+    formData.append('title', title);
+    formData.append('topic_id', topicId);
+    formData.append('email', AppState.currentUser.email);  // ← CRITICAL!
+
+    showToast('Uploading and analysing your research...', 'warning');
+
+    // ===== SEND TO BACKEND =====
+    fetch('/api/upload', {
+        method: 'POST',
+        body: formData
+    })
+    .then(response => response.json())
+    .then(data => {
+        console.log('📊 Upload response:', data);
+
+        // ===== SUCCESS - Essay Passed =====
+        if (data.success) {
+            // Add submission to local state
+            const submission = {
+                id: AppState.nextSubmissionId++,
+                title: title,
+                date: new Date().toISOString().split('T')[0],
+                words: data.word_count || 0,
+                similarity: data.similarity || 0,
+                score: data.originality || 0,
+                status: 'Verified',
+                earnings: data.earnings || 0
+            };
+            
+            AppState.submissions.push(submission);
+            AppState.walletBalance = (AppState.walletBalance || 0) + (data.earnings || 0);
+            AppState.totalEarnings = (AppState.totalEarnings || 0) + (data.earnings || 0);
+            AppState.verifiedSubmissions = (AppState.verifiedSubmissions || 0) + 1;
+            
+            // Add transaction
+            AppState.transactions.push({
+                date: new Date().toISOString().split('T')[0],
+                activity: 'Research Submission',
+                amount: data.earnings || 0,
+                status: 'Verified'
+            });
+            
+            saveState();
+            
+            showToast('✅ ' + data.message + ' +R' + (data.earnings || 0).toFixed(2), 'success');
+            
+            // Show verification result page
+            showVerificationResult(true, data);
+            
+        // ===== FAILURE - Essay Rejected =====
+        } else {
+            // Check if it was a strike
+            if (data.strike) {
+                AppState.strikes = (AppState.strikes || 0) + 1;
+                saveState();
+
+                renderStudentDashboard();
+
+                showToast('❌ ' + data.error + ' - Strike ' + AppState.strikes + '/3', 'error');
+                
+                if (AppState.strikes >= 3) {
+                    showToast('Account suspended due to 3 strikes.', 'error');
+                }
+            } else {
+                showToast('❌ ' + data.error, 'error');
+            }
+            
+            // Show verification result page (failed)
+            showVerificationResult(false, data);
+        }
+    })
+    .catch(error => {
+        console.error('Upload error:', error);
+        showToast('Connection error. Please try again.', 'error');
+    });
+}
+
+    // ===== DASHBOARD (UPDATED: Flask API) =====
+    function refreshDashboard() {
+        if (!AppState.currentUser) return;
+
+        fetch('/api/dashboard')
+        .then(response => response.json())
+        .then(data => {
+            if (data.success) {
+                AppState.walletBalance = data.wallet || 0;
+                AppState.strikes = data.strikes || 0;
+                AppState.submissions = data.submissions || [];
+                AppState.isVerified = data.verified || false;
+                saveState();
+                renderStudentDashboard();
+            }
+        })
+        .catch(() => {});
+    }
+
+    // ===== BANK DETAILS (UPDATED: Flask API) =====
+    function saveBankDetails(e) {
+        e.preventDefault();
+        const holder = document.getElementById('bankHolder').value;
+        const bank = document.getElementById('bankName').value;
+        const account = document.getElementById('bankAccount').value;
+        const type = document.getElementById('bankType').value;
+        const branch = document.getElementById('bankBranch').value;
+
+        if (!holder || !bank || !account) {
+            showToast('Please fill in all required fields.', 'error');
+            return;
+        }
+
+        fetch('/api/save-bank', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ holder, bank, account, type, branch })
+        })
+        .then(response => response.json())
+        .then(data => {
+            if (data.success) {
+                const masked = '•••• ' + account.slice(-4);
+                AppState.bankDetails = { holder, bank, account: masked, type, branch };
+                saveState();
+                renderBankDetails();
+                showToast('Banking details saved successfully!', 'success');
+            } else {
+                showToast(data.error || 'Failed to save', 'error');
+            }
+        })
+        .catch(error => {
+            showToast('Connection error.', 'error');
+        });
+    }
+
+    // ===== HELPER FUNCTION - PUT THIS RIGHT UNDER IT! =====
+    function showVerificationResult(success, data) {
+    // Show the verification page
+    showPage('ai-verify');
+    
+    const progress = document.getElementById('verificationProgress');
+    const result = document.getElementById('verificationResult');
+    const failed = document.getElementById('verificationFailed');
+    
+    progress.style.display = 'none';
+    
+    if (success) {
+        // ===== SUCCESS =====
+        result.style.display = 'block';
+        
+        // Update the result with real data
+        const scoreEl = result.querySelector('div:nth-child(3) div:nth-child(1) strong');
+        const simEl = result.querySelector('div:nth-child(3) div:nth-child(2) strong');
+        const earnEl = result.querySelector('div:nth-child(3) div:nth-child(3) strong');
+        if (scoreEl) scoreEl.textContent = (data.originality || 0) + '%';
+        if (simEl) simEl.textContent = (data.similarity || 0) + '%';
+        if (earnEl) earnEl.textContent = '+R' + (data.earnings || 0).toFixed(2);
+        
+    } else {
+        // ===== FAILED =====
+        failed.style.display = 'block';
+        
+        // Update failed message with real data
+        const ul = failed.querySelector('ul');
+        if (ul) {
+            ul.innerHTML = '';
+            if (data.originality < 70) {
+                ul.innerHTML += '<li>Low originality score (' + (data.originality || 0) + '%)</li>';
+            }
+            if (data.academic_score < 40) {
+                ul.innerHTML += '<li>Insufficient academic tone (' + (data.academic_score || 0) + '%)</li>';
+            }
+            if (data.similarity > 15) {
+                ul.innerHTML += '<li>High similarity detected (' + (data.similarity || 0) + '%)</li>';
+            }
+            if (data.error) {
+                ul.innerHTML += '<li>' + data.error + '</li>';
+            }
+        }
+        
+        // Update strike message
+        const strikeMsg = failed.querySelector('p:last-child');
+        if (strikeMsg) {
+            strikeMsg.textContent = 'Strike applied: ' + (AppState.strikes || 0) + ' / 3';
+        }
+        
+        // ==========================================================
+        // ✅ ADD THIS CODE RIGHT HERE — UPDATE THE RETURN BUTTON
+        // ==========================================================
+        const returnBtn = failed.querySelector('.btn-terra');
+        if (returnBtn) {
+            returnBtn.onclick = function() {
+                renderStudentDashboard();  // Refresh dashboard first
+                showPage('student');
+            };
+        }
+        // ==========================================================
+    }
+}
+
+    // ============================================================
+    // ===== RENDER FUNCTIONS (unchanged from original) =====
+    // ============================================================
+
+    function renderStudentDashboard() {
+        const user = AppState.currentUser;
+        if (!user) return;
+        const name = user.name || 'Student';
+        const hour = new Date().getHours();
+        let greeting = 'Good morning';
+        if (hour >= 12 && hour < 17) greeting = 'Good afternoon';
+        else if (hour >= 17) greeting = 'Good evening';
+        document.getElementById('dashWelcome').textContent = greeting + ', ' + name.split(' ')[0];
+
+        const walletEl = document.getElementById('dashWallet');
+        if (walletEl) walletEl.textContent = 'R ' + (AppState.walletBalance || 0).toFixed(2);
+
+        const earningsEl = document.getElementById('dashEarnings');
+        if (earningsEl) earningsEl.textContent = 'R ' + (AppState.totalEarnings || 0).toFixed(2);
+
+        const subsEl = document.getElementById('dashSubmissions');
+        const verified = AppState.submissions ? AppState.submissions.filter(s => s.status === 'Verified').length : 0;
+        const pending = AppState.submissions ? AppState.submissions.filter(s => s.status === 'Pending').length : 0;
+        if (subsEl) subsEl.textContent = verified + pending;
+
+        const simEl = document.getElementById('dashSimilarity');
+        if (simEl) {
+            const avgSim = AppState.submissions && AppState.submissions.length > 0 ?
+                Math.round(AppState.submissions.reduce((sum, s) => sum + (s.similarity || 0), 0) / AppState.submissions.length) :
+                0;
+            simEl.textContent = avgSim + '%';
+        }
+
+      // Strikes
+const strikes = AppState.strikes || 0;
+const dots = document.querySelectorAll('.strike-dot');
+dots.forEach((dot, i) => {
+    dot.className = 'strike-dot';
+    if (i < strikes) dot.classList.add('filled');
+    if (i === strikes && strikes < 3) dot.classList.add('warning');
+});
+const strikeText = document.querySelector('.strike-indicator span:last-child');
+if (strikeText) strikeText.textContent = strikes + ' / 3 strikes used';
+        
+
+        // Recent submissions
+        const recent = (AppState.submissions || []).slice(0, 5);
+        const tbody = document.getElementById('recentSubmissionsTable');
+        if (tbody) {
+            tbody.innerHTML = '';
+            recent.forEach(s => {
+                const tr = document.createElement('tr');
+                const statusClass = s.status === 'Verified' ? 'status-verified' :
+                    s.status === 'Pending' ? 'status-pending' : 'status-rejected';
+                tr.innerHTML = `
+                    <td>${s.title || 'Untitled'}</td>
+                    <td>${s.date || ''}</td>
+                    <td>${s.words || 0}</td>
+                    <td>${s.similarity || 0}%</td>
+                    <td><span class="status-badge ${statusClass}">${s.status || 'Pending'}</span></td>
+                    <td>${s.earnings > 0 ? '+R' + s.earnings : '—'}</td>
+                `;
+                tbody.appendChild(tr);
+            });
+        }
+    }
+
+    function renderWallet() {
+        const balanceEl = document.getElementById('walletBalance');
+        if (balanceEl) balanceEl.textContent = 'R ' + (AppState.walletBalance || 0).toFixed(2);
+
+        const tbody = document.getElementById('transactionTable');
+        if (!tbody) return;
+        tbody.innerHTML = '';
+        const txns = AppState.transactions || [];
+        txns.slice().reverse().forEach(t => {
+            const tr = document.createElement('tr');
+            const statusColor = t.status === 'Verified' || t.status === 'Completed' ? 'var(--sage-green)' :
+                t.status === 'Pending' ? 'var(--golden-tan)' : 'var(--terracotta)';
+            tr.innerHTML = `
+                <td>${t.date || ''}</td>
+                <td>${t.activity || ''}</td>
+                <td style="color:${t.amount >= 0 ? 'var(--sage-green)' : 'var(--terracotta)'};font-weight:600;">${t.amount >= 0 ? '+R' : '-R'}${Math.abs(t.amount || 0).toFixed(2)}</td>
+                <td><span style="color:${statusColor};font-weight:600;">${t.status || 'Pending'}</span></td>
+            `;
+            tbody.appendChild(tr);
+        });
+    }
+
+    function renderProfile() {
+        const user = AppState.currentUser;
+        if (!user) return;
+        const name = user.name || 'Student';
+        document.getElementById('profileAvatar').textContent = name.split(' ').map(n => n[0]).join('') || 'S';
+        document.getElementById('profileName').textContent = name;
+        document.getElementById('profileUni').textContent = user.university || 'University';
+        document.getElementById('profileDetails').textContent = 'Year ' + (user.year || '1') + ' · Faculty of ' + (user.faculty || 'Science');
+        document.getElementById('profileInterests').textContent = user.interests || 'Not specified';
+        document.getElementById('profileSkills').textContent = user.skills || 'Research, Writing';
+    }
+
+    function renderTopics() {
+        const grid = document.getElementById('topicsGrid');
+        if (!grid) return;
+        grid.innerHTML = '';
+        const topics = AppState.topics || [];
+        topics.forEach(t => {
+            const card = document.createElement('div');
+            card.className = 'topic-card';
+            card.innerHTML = `
+                <h3>${t.title}</h3>
+                <div class="meta">
+                    <span>${t.category}</span>
+                    <span>${t.difficulty}</span>
+                    <span>${t.wordTarget} words</span>
+                    <span>Deadline: ${t.deadline}</span>
+                </div>
+                <div style="display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;">
+                    <div>
+                        <span style="font-size:0.8rem;color:var(--warm-brown);">Rate: R${t.rate}/word</span>
+                        <br>
+                        <span class="earnings">Potential: R${t.earnings}</span>
+                    </div>
+                    <button class="btn btn-primary btn-sm" onclick="selectTopic(${t.id})">Start Research</button>
+                </div>
+                <div style="margin-top:8px;font-size:0.75rem;color:var(--warm-brown);">${t.contributorsNeeded} contributors needed</div>
+            `;
+            grid.appendChild(card);
+        });
+    }
+
+    function selectTopic(topicId) {
+        const topic = AppState.topics.find(t => t.id === topicId);
+        if (topic) {
+            AppState.selectedTopic = topic;
+            saveState();
+            showPage('student-upload');
+            populateTopicSelect(topicId);
+            showToast('Selected: ' + topic.title, 'success');
+        }
+    }
+
+    function populateTopicSelect(selectedId) {
+        const select = document.getElementById('uploadTopic');
+        if (!select) {
+            console.error('AcademiX: #uploadTopic was not found.');
+            return;
+        }
+
+        // GUARANTEE that the submit form always has topics.
+        // This also repairs old localStorage where AppState.topics was empty.
+        const fallbackTopics = [
+            { id: 1, title: 'The Impact of Artificial Intelligence on Higher Education', earnings: 150, category: 'Technology', difficulty: 'Intermediate', wordTarget: 1500, rate: 0.10, deadline: '2026-09-15', contributorsNeeded: 5 },
+            { id: 2, title: 'Climate Change and Urban Resilience in South Africa', earnings: 240, category: 'Environmental Science', difficulty: 'Advanced', wordTarget: 2000, rate: 0.12, deadline: '2026-10-01', contributorsNeeded: 8 },
+            { id: 3, title: 'Public Health Policy in Post-Pandemic Africa', earnings: 180, category: 'Public Health', difficulty: 'Intermediate', wordTarget: 1800, rate: 0.10, deadline: '2026-09-30', contributorsNeeded: 6 },
+            { id: 4, title: 'Economic Inequality and Digital Inclusion', earnings: 242, category: 'Economics', difficulty: 'Advanced', wordTarget: 2200, rate: 0.11, deadline: '2026-10-15', contributorsNeeded: 4 },
+            { id: 5, title: 'The Role of Indigenous Knowledge in Modern Science', earnings: 96, category: 'Social Sciences', difficulty: 'Beginner', wordTarget: 1200, rate: 0.08, deadline: '2026-08-30', contributorsNeeded: 10 },
+            { id: 6, title: 'Cybersecurity in Financial Systems', earnings: 350, category: 'Technology', difficulty: 'Advanced', wordTarget: 2500, rate: 0.14, deadline: '2026-11-01', contributorsNeeded: 3 }
+        ];
+
+        if (!Array.isArray(AppState.topics) || AppState.topics.length === 0) {
+            AppState.topics = fallbackTopics;
+            saveState();
+        }
+
+        select.innerHTML = '';
+
+        const placeholder = document.createElement('option');
+        placeholder.value = '';
+        placeholder.textContent = '— Choose a topic —';
+        select.appendChild(placeholder);
+
+        AppState.topics.forEach(t => {
+            const opt = document.createElement('option');
+            opt.value = String(t.id);
+            opt.textContent = t.title + ' (R' + t.earnings + ')';
+
+            if (
+                selectedId !== null &&
+                selectedId !== undefined &&
+                String(t.id) === String(selectedId)
+            ) {
+                opt.selected = true;
+            }
+
+            select.appendChild(opt);
+        });
+
+        console.log(
+            'AcademiX: populated topic dropdown with',
+            AppState.topics.length,
+            'topics'
+        );
+    }
+
+    function renderAllSubmissions() {
+        const tbody = document.getElementById('allSubmissionsTable');
+        if (!tbody) return;
+        tbody.innerHTML = '';
+        const subs = AppState.submissions || [];
+        subs.slice().reverse().forEach(s => {
+            const tr = document.createElement('tr');
+            const statusClass = s.status === 'Verified' ? 'status-verified' :
+                s.status === 'Pending' ? 'status-pending' : 'status-rejected';
+            tr.innerHTML = `
+                <td>${s.title || 'Untitled'}</td>
+                <td>${s.date || ''}</td>
+                <td>${s.words || 0}</td>
+                <td>${s.similarity || 0}%</td>
+                <td>${s.score || '—'}%</td>
+                <td><span class="status-badge ${statusClass}">${s.status || 'Pending'}</span></td>
+                <td>${s.earnings > 0 ? '+R' + s.earnings : '—'}</td>
+            `;
+            tbody.appendChild(tr);
+        });
+    }
+
+    function renderDocuments() {
+        const grid = document.getElementById('docGrid');
+        if (!grid) return;
+        grid.innerHTML = '';
+        const docs = AppState.documents || [];
+        docs.forEach(d => {
+            const card = document.createElement('div');
+            card.className = 'doc-card';
+            card.innerHTML = `
+                <span class="name">${d.name}</span>
+                <span class="meta">${d.type || 'Document'} · ${d.date || ''}</span>
+                <span class="badge badge-green" style="font-size:0.6rem;align-self:flex-start;">${d.status || 'Pending'}</span>
+            `;
+            grid.appendChild(card);
+        });
+        if (docs.length === 0) {
+            grid.innerHTML = '<div class="empty-state"><div class="icon">📄</div><h3>No documents yet</h3><p>Upload your student card or registration letter.</p></div>';
+        }
+    }
+
+    function renderBankDetails() {
+        const bank = AppState.bankDetails;
+        const saved = document.getElementById('bankSaved');
+        const form = document.getElementById('bankForm');
+        if (!form) return;
+        if (bank && bank.account) {
+            saved.style.display = 'block';
+            document.getElementById('bankMasked').textContent = bank.account;
+            document.getElementById('bankHolder').value = bank.holder || '';
+            document.getElementById('bankName').value = bank.bank || '';
+            document.getElementById('bankAccount').value = bank.account || '';
+            document.getElementById('bankType').value = bank.type || 'Cheque';
+            document.getElementById('bankBranch').value = bank.branch || '';
+            form.querySelector('button').textContent = 'Update Banking Details';
+        } else {
+            saved.style.display = 'none';
+            form.querySelector('button').textContent = 'Save Banking Details';
+        }
+    }
+
+    function uploadDocument() {
+        const input = document.getElementById('docUpload');
+        if (!input.files || input.files.length === 0) {
+            showToast('Please select a document.', 'warning');
+            return;
+        }
+        const file = input.files[0];
+        const doc = {
+            id: AppState.nextDocId++,
+            name: file.name,
+            type: 'Document',
+            date: new Date().toISOString().split('T')[0],
+            status: 'Pending',
+        };
+        AppState.documents.push(doc);
+        saveState();
+        renderDocuments();
+        showToast('Document uploaded: ' + file.name, 'success');
+        input.value = '';
+    }
+
+    function renderPatronDashboard() {
+        document.getElementById('patronStatAvailable').textContent = '742';
+        document.getElementById('patronStatPurchased').textContent = AppState.patron.purchases ? AppState.patron.purchases.length : 0;
+        document.getElementById('patronStatSaved').textContent = AppState.patron.saved ? AppState.patron.saved.length : 0;
+        const totalSpent = (AppState.patron.purchases || []).reduce((sum, p) => sum + (p.price || 0), 0);
+        document.getElementById('patronStatSpent').textContent = 'R' + totalSpent;
+    }
+
+    function renderPatronMarketplace() {
+        const grid = document.getElementById('patronMarketGrid');
+        if (!grid) return;
+        grid.innerHTML = '';
+        researchItems.forEach(item => {
+            const card = document.createElement('div');
+            card.className = 'topic-card';
+            card.innerHTML = `
+                <div style="display:flex;justify-content:space-between;align-items:start;flex-wrap:wrap;">
+                    <span class="tag" style="background:#e5f0e9;color:var(--sage-green);padding:5px 9px;border-radius:99px;font-size:10px;font-weight:900;text-transform:uppercase;">${item.category}</span>
+                    <span style="font-size:0.75rem;color:var(--warm-brown);">📄 ${item.words} words</span>
+                </div>
+                <h3 style="color:var(--deep-green);margin:12px 0 6px;">${item.title}</h3>
+                <p style="font-size:0.9rem;color:var(--warm-brown);">${item.description}</p>
+                <div class="meta">
+                    <span>⭐ ${item.quality}% quality</span>
+                    <span>📊 ${item.similarity}% similarity</span>
+                    <span>👤 ${item.student}</span>
+                </div>
+                <div style="display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;margin-top:8px;">
+                    <span class="research-price" style="font-size:1.4rem;font-weight:800;color:var(--deep-green);">R${item.price}</span>
+                    <div style="display:flex;gap:8px;">
+                        <button class="btn btn-secondary btn-sm" onclick="saveResearch(${item.id})">⭐</button>
+                        <button class="btn btn-primary btn-sm" onclick="purchaseResearch(${item.id})">Purchase</button>
+                    </div>
+                </div>
+            `;
+            grid.appendChild(card);
+        });
+    }
+
+    function renderPatronSaved() {
+        const grid = document.getElementById('patronSavedGrid');
+        if (!grid) return;
+        grid.innerHTML = '';
+        const savedIds = AppState.patron.saved || [];
+        const savedItems = researchItems.filter(item => savedIds.includes(item.id));
+        if (savedItems.length === 0) {
+            grid.innerHTML = '<div class="empty-state"><div class="icon">⭐</div><h3>No saved research</h3><p>Browse the marketplace and save items you\'re interested in.</p></div>';
+            return;
+        }
+        savedItems.forEach(item => {
+            const card = document.createElement('div');
+            card.className = 'topic-card';
+            card.innerHTML = `
+                <div style="display:flex;justify-content:space-between;align-items:start;flex-wrap:wrap;">
+                    <span class="tag" style="background:#e5f0e9;color:var(--sage-green);padding:5px 9px;border-radius:99px;font-size:10px;font-weight:900;text-transform:uppercase;">${item.category}</span>
+                </div>
+                <h3 style="color:var(--deep-green);margin:12px 0 6px;">${item.title}</h3>
+                <p style="font-size:0.9rem;color:var(--warm-brown);">${item.description}</p>
+                <div class="meta">
+                    <span>⭐ ${item.quality}% quality</span>
+                    <span>📊 ${item.similarity}% similarity</span>
+                </div>
+                <div style="display:flex;justify-content:space-between;align-items:center;margin-top:8px;">
+                    <span class="research-price" style="font-size:1.4rem;font-weight:800;color:var(--deep-green);">R${item.price}</span>
+                    <button class="btn btn-terra btn-sm" onclick="unsaveResearch(${item.id})">Remove</button>
+                </div>
+            `;
+            grid.appendChild(card);
+        });
+    }
+
+    function renderPatronPurchases() {
+        const tbody = document.getElementById('patronPurchaseTable');
+        if (!tbody) return;
+        tbody.innerHTML = '';
+        const purchases = AppState.patron.purchases || [];
+        if (purchases.length === 0) {
+            tbody.innerHTML = '<tr><td colspan="5" style="text-align:center;color:var(--warm-brown);padding:30px;">No purchases yet. Browse the marketplace to find research.</td></tr>';
+            return;
+        }
+        purchases.forEach(p => {
+            const tr = document.createElement('tr');
+            tr.innerHTML = `
+                <td>${p.title}</td>
+                <td>${p.category}</td>
+                <td>${p.date || 'Today'}</td>
+                <td>R${p.price}</td>
+                <td><button class="btn btn-sage btn-sm">Download</button></td>
+            `;
+            tbody.appendChild(tr);
+        });
+    }
+
+    function renderPatronAccount() {
+        // Already populated in HTML
+    }
+
+    // ===== PATRON ACTIONS =====
+    function saveResearch(id) {
+        if (!AppState.patron.saved) AppState.patron.saved = [];
+        if (AppState.patron.saved.includes(id)) {
+            showToast('Already saved.', 'warning');
+            return;
+        }
+        AppState.patron.saved.push(id);
+        saveState();
+        showToast('Research saved!', 'success');
+        renderPatronSaved();
+    }
+
+    function unsaveResearch(id) {
+        AppState.patron.saved = (AppState.patron.saved || []).filter(i => i !== id);
+        saveState();
+        showToast('Removed from saved.', 'warning');
+        renderPatronSaved();
+    }
+
+    function purchaseResearch(id) {
+        const item = researchItems.find(i => i.id === id);
+        if (!item) return;
+        if (!AppState.patron.purchases) AppState.patron.purchases = [];
+        if (AppState.patron.purchases.some(p => p.id === id)) {
+            showToast('Already purchased.', 'warning');
+            return;
+        }
+        AppState.patron.purchases.push({
+            id: item.id,
+            title: item.title,
+            category: item.category,
+            price: item.price,
+            date: new Date().toISOString().split('T')[0]
+        });
+        saveState();
+        showToast('Research purchased! +R' + item.price, 'success');
+        renderPatronPurchases();
+        renderPatronDashboard();
+    }
+
+    // ===== WITHDRAWAL =====
+    function openWithdraw() {
+        if (!AppState.bankDetails || !AppState.bankDetails.account) {
+            showToast('Please add your banking details first.', 'warning');
+            showPage('student-bank');
+            return;
+        }
+        if (AppState.walletBalance <= 0) {
+            showToast('Your wallet balance is empty. Start contributing!', 'warning');
+            return;
+        }
+        const modal = document.getElementById('modalOverlay');
+        document.getElementById('modalTitle').textContent = 'Withdraw Funds';
+        document.getElementById('modalContent').innerHTML = `
+            <p>Withdraw <strong>R ${AppState.walletBalance.toFixed(2)}</strong> to your bank account?</p>
+            <p style="font-size:0.85rem;color:var(--warm-brown);">Account: ${AppState.bankDetails.bank} ending ${AppState.bankDetails.account}</p>
+            <div style="margin-top:16px;display:flex;gap:12px;justify-content:flex-end;">
+                <button class="btn btn-secondary btn-sm" onclick="closeModal()">Cancel</button>
+                <button class="btn btn-primary btn-sm" onclick="processWithdraw()">Confirm Withdraw</button>
+            </div>
+        `;
+        modal.classList.add('open');
+    }
+
+    function processWithdraw() {
+    const amount = AppState.walletBalance;
+    
+    if (!AppState.currentUser) {
+        showToast('Please login first.', 'error');
+        return;
+    }
+    
+    // Send withdrawal request to backend
+    fetch('/api/withdraw', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+            email: AppState.currentUser.email,
+            amount: amount
+        })
+    })
+    .then(response => response.json())
+    .then(data => {
+        if (data.success) {
+            // Update frontend
+            AppState.walletBalance = data.new_balance;
+            AppState.transactions.push({
+                date: new Date().toISOString().split('T')[0],
+                activity: 'Withdrawal',
+                amount: -amount,
+                status: 'Completed'
+            });
+            saveState();
+            closeModal();
+            showToast('Withdrawal of R ' + amount.toFixed(2) + ' completed!', 'success');
+            renderWallet();
+            renderStudentDashboard();
+        } else {
+            showToast(data.error || 'Withdrawal failed', 'error');
+        }
+    })
+    .catch(error => {
+        showToast('Connection error. Please try again.', 'error');
+    });
+}
+
+    // ===== NAV TOGGLE =====
+    document.getElementById('navToggle').addEventListener('click', function() {
+        document.getElementById('navLinks').classList.toggle('open');
+    });
+
+    // ===== INIT =====
+    function init() {
+        loadState();
+
+        // Always repair/initialize topics, even if old localStorage
+        // already contains academix_seeded.
+        if (!Array.isArray(AppState.topics) || AppState.topics.length === 0) {
+            seedData();
+        }
+
+        selectRegRole('student');
+
+        const user = AppState.currentUser;
+        if (user) {
+            if (user.role === 'student') showPage('student');
+            else if (user.role === 'patron') showPage('patron-dashboard');
+            else showPage('landing');
+        } else {
+            showPage('landing');
+        }
+
+        // Populate topic dropdown
+        populateTopicSelect();
+
+        console.log('✅ AcademiX loaded successfully!');
+        console.log('Demo accounts: student@demo.com / password123 | patron@demo.com / password123');
+    }
+
+    // Run on load
+    document.addEventListener('DOMContentLoaded', init);
+</script>
